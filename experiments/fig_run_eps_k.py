@@ -56,29 +56,35 @@ def main():
         eps_error = average_error
         x = math.log(eps_error)
         estimate_k = int(-2.676 * x * x * x - 45.47 * x * x - 279.9 * x - 584.6)
+        print estimate_k
         low_k = estimate_k - 50
+        if low_k < 30:
+            low_k = 30
         high_k = estimate_k + 50
         while True:
             low_k_error = find_k_error(dir_name,model_name,obj_path,low_k,error_file)
-            if low_k_error > eps_error:
-                low_k -= 100
+            if low_k_error < eps_error:
+                low_k -= 50
+                if low_k < 30:
+                    low_k = 30
+                    break
             else:
                 break
 
         while True:
             high_k_error = find_k_error(dir_name,model_name,obj_path,high_k,error_file)
-            if high_k_error < eps_error:
-                high_k += 100
+            if high_k_error > eps_error:
+                high_k += 50
             else:
                 break
         print low_k, high_k
         while True:
             mid_k = int((low_k+high_k) / 2)
             mid_k_error = find_k_error(dir_name,model_name,obj_path,mid_k,error_file)
-            if mid_k_error < eps_error:
-                low_k = mid_k
-            else:
+            if eps_error > mid_k_error:
                 high_k = mid_k
+            else:
+                low_k = mid_k
             if high_k - low_k <= 2:
                 break
             
