@@ -32,16 +32,19 @@ print eps_list
 ##quit()
 
 #obj_path = model_name + '.obj'
-model_name = obj_name[:-4]
+model_name = os.path.basename(obj_name)[:-4]
+dir_name = os.path.dirname(obj_name)
 obj_path = obj_name
 
 if method == 'fan':
-    error_file = '%s_error_file_fan_cc%.0f.txt' % (model_name,input_const)
+    error_file = os.path.join(dir_name,'%s_error_file_fan_cc%.0f.txt' % (model_name,input_const))
 elif method == 'lc':
-    error_file = '%s_error_file_lc_cc%.0f.txt' % (model_name,input_const)
+    error_file = os.path.join(dir_name,'%s_error_file_lc_cc%.0f.txt' % (model_name,input_const))
 else:
     print 'method is fan or lc'
     quit()
+
+print error_file
 
     
 for eps in eps_list:
@@ -50,9 +53,9 @@ for eps in eps_list:
     elif const_method == 'choose':
         constant = input_const
     #constant = 5
-    precompute_log_filename = 'dgg_precompute_%s_%f_%d.log' % (obj_path,eps,constant)
+    precompute_log_filename = os.path.join(dir_name,'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
     svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f p %d 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
-    svg_binary_filename = '%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant)
+    svg_binary_filename = os.path.join(dir_name,'%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant))
     if not os.path.isfile(svg_binary_filename):
         print svg_precompute_cmd_line
         os.system(svg_precompute_cmd_line)

@@ -4,7 +4,7 @@ import math
 
 #print sys.argv
 
-obj_name = sys.argv[1]
+obj_path = sys.argv[1]
 
 k_start = int(sys.argv[2])
 k_end = int(sys.argv[3])
@@ -21,20 +21,22 @@ k_list.append(k_end)
 print k_list
     
 #obj_path = model_name + '.obj'
-model_name = obj_name[:-4]
-obj_path = obj_name
+model_name = os.path.basename(obj_path)[:-4]
+dir_name = os.path.dirname(obj_path)
 
-error_file = '%s_k_error_file_time.txt' % (model_name)
+
+
+error_file = os.path.join(dir_name,'%s_k_error_file_time.txt' % (model_name))
 
 for k in k_list:
-    precompute_log_filename = 'dgg_precompute_%s_k%d.log' % (obj_path,k)
-    svg_precompute_cmd_line = 'c:/util/dgg_precompute.exe %s %d n 2> %s' % (obj_path,k,precompute_log_filename)
-    svg_binary_filename = '%s_SVG_k%d.binary' % (model_name,k)
+    precompute_log_filename = os.path.join(dir_name,'dgg_precompute_%s_k%d.log' % (model_name,k))
+    svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %d n 2> %s' % (obj_path,k,precompute_log_filename)
+    svg_binary_filename = os.path.join(dir_name,'%s_SVG_k%d.binary' % (model_name,k))
     if not os.path.isfile(svg_binary_filename):
         print svg_precompute_cmd_line
         os.system(svg_precompute_cmd_line)
     svg_log_filename=svg_binary_filename[:-7] + '_dij.log'
-    svg_dij_cmd_line = 'c:/util/dgg_lc.exe %s %s dij 2> %s' %(obj_path,svg_binary_filename,svg_log_filename)
+    svg_dij_cmd_line = r'..\bin\dgg_lc.exe %s %s dij 2> %s' %(obj_path,svg_binary_filename,svg_log_filename)
     print svg_dij_cmd_line
     os.system(svg_dij_cmd_line)
     
