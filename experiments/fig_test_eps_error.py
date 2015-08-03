@@ -51,7 +51,7 @@ for eps in eps_list:
         constant = input_const
     #constant = 5
     precompute_log_filename = 'dgg_precompute_%s_%f_%d.log' % (obj_path,eps,constant)
-    svg_precompute_cmd_line = 'c:/util/dgg_precompute.exe %s %f p %d 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
+    svg_precompute_cmd_line = '../bin/dgg_precompute.exe %s %f p %d 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
     svg_binary_filename = '%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant)
     if not os.path.isfile(svg_binary_filename):
         print svg_precompute_cmd_line
@@ -64,9 +64,9 @@ for eps in eps_list:
     svg_log_filename=svg_binary_filename[:-7] + '_hy.log'
     #if not os.path.isfile(svg_log_filename):
     if method == 'fan':
-        svg_lll_cmd_line = 'c:/util/dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = '../bin/dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'lc':
-        svg_lll_cmd_line = 'c:/util/dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = '../bin/dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
         
     print svg_lll_cmd_line
     os.system(svg_lll_cmd_line)
