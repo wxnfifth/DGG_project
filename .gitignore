@@ -50,6 +50,7 @@ dlldata.c
 *.ilk
 *.meta
 ##*.obj
+*_exact_dis.obj
 *.pch
 *.pdb
 *.pgc
