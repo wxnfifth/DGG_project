@@ -32,27 +32,8 @@ namespace JIAJUN_DGG_PRUNING{
     short int end_pos;
     short int pos;
     SVGEdge(): deleted(false){}
-    //SVGEdge(int node, float distance): v(node), dis(distance), deleted(false){}
-    //SVGEdge(int node, float distance, float _angle, int _begin_pos, int _end_pos): v(node), dis(distance), deleted(false), angle(_angle), begin_pos(_begin_pos),end_pos(_end_pos) {}
-
-
 
   };
-
-
-  //struct SVGEdgeForRead{
-  //  int v;
-  //  double dis;
-  //} ;
-
-  /*
-  class DGGEdge: public SVGEdge{
-  public:
-  bool deleted;
-  DGGEdge(): deleted(false){}
-  DGGEdge(int node, double distance): v(node), dis(distance), deleted(false){}
-  };
-  */
 
 
   class SVG{
@@ -105,37 +86,6 @@ namespace JIAJUN_DGG_PRUNING{
     void writeSVGBinary(const char *);
     void writeSVGBinary_new(const char *);
   };
-
-
-  //void SVG::read(const char * filename){
-  //	SVG & svg = * this;
-  //	char buf[1024];
-  //	sprintf(buf, "%s_K%d_degree.txt", filename, K);
-  //	FILE * fd = fopen(buf, "r");
-  //	sprintf(buf, "%s_K%d.edge", filename, K);
-  //	FILE * fe = fopen(buf, "rb");
-  //	degree = new int[N+1];
-  //	degree[0] = 0;
-  //	for(int i = 1; i <= svg.N; ++i){
-  //		fscanf(fd, "%d", &(svg.degree[i]));
-  //		svg.degree[i] += svg.degree[i-1];
-  //	}
-  //	fclose(fd);
-  //	printf("read_svg2\n");
-  //	svg.edge = new SVGEdge[svg.degree[svg.N]+100];
-  //	printf("%d", svg.degree[svg.N]);
-  //	//system("pause");
-  //	for(int i = 0; i < svg.N; ++i){
-  //		for(int j = svg.degree[i]; j < svg.degree[i+1]; ++j){
-  //			// fprintf(stderr,"%d\w", j);
-  //			fread(&(svg.edge[j]), sizeof(SVGEdge), 1, fe);
-  //
-  //		}
-  //	}
-  //	fclose(fe);
-  //	printf("read_svg3\n");
-  //	//system("pause");
-  //}
 
   void DGG::readWxnBinary(const char* svg_filename)
   {
@@ -232,50 +182,6 @@ namespace JIAJUN_DGG_PRUNING{
 
   }
 
-
-
-  //void DGG::read(const char * filename){
-  //	assert(sizeof(filename));
-  //	printf("File: %s\n", filename);
-  //	//system("pause");
-  //
-  //	char buf[1024];
-  //	sprintf(buf, "%s_degree.txt", filename);
-  //	FILE * fd = fopen(buf, "r");
-  //	fscanf(fd, "%d" , & N);
-  //	sprintf(buf, "%s.edge", filename);
-  //	FILE * fe = fopen(buf, "rb");
-  //	printf("file found %s with %d verts", filename, N);
-  //	degree = new int[N+1];
-  //	degree[0] = 0;
-  //	
-  //	for(int i = 1; i <= N; ++i){
-  //		fscanf(fd, "%d", &(degree[i]));
-  //		degree[i] += degree[i-1];
-  //	}
-  //	fclose(fd);
-  //	printf("read_dgg2\n");
-  //	edge = new SVGEdge[degree[N]+100];
-  //	printf("%d", degree[N]);
-  //	//system("pause");
-  //
-  //	for(int i = 0; i < N; ++i) {
-  //		for(int j = degree[i]; j < degree[i+1]; ++j){
-  //			// fprintf(stderr,"%d\w", j);
-  //      SVGEdgeForRead __temp__tempSVGEdge__;
-  //			fread(&(__temp__tempSVGEdge__), sizeof(SVGEdgeForRead), 1, fe);
-  //			//printf("%d\t", __temp__tempSVGEdge__.v);
-  //			edge[j].v = __temp__tempSVGEdge__.v;
-  //			edge[j].dis = __temp__tempSVGEdge__.dis;
-  //			edge[j].deleted = 0;
-  //		}
-  //	}
-  //	fclose(fe);
-  //	printf("read_dgg3\n");
-  //	//system("pause");
-  //}
-  //
-
 #if _debug
   void SVG::dijkstra(int src, double * dis, bool * mark)
   {
@@ -344,7 +250,7 @@ namespace JIAJUN_DGG_PRUNING{
         }
         mark[a.v] = 1;
       }
-      fprintf(stderr,"cnt %d\n" , cnt);
+      //fprintf(stderr,"cnt %d\n" , cnt);
       for (int i = dgg.degree[src]; i != dgg.degree[src + 1]; ++i)
       {
         dis[dgg.edge[i].v] = maxDist;
@@ -649,25 +555,3 @@ namespace JIAJUN_DGG_PRUNING{
     }
 
   }
-
-//int main(int argc, const char * argv[])
-//{
-//	printf("argv: %s", argv[1]);
-//	DGG dgg;
-//	dgg.read(argv[1]);
-//	dgg.eps = atof(argv[2]);
-//	/*
-//	for (int i = 0; i != dgg.N; ++i)
-//	{
-//		for (int j = dgg.degree[i]; j != dgg.degree[i + 1]; ++j)
-//			printf("%lf\t", dgg.edge[j].dis);
-//	}
-//	*/
-//	printf("Before: %d\n", dgg.degree[dgg.N]);
-//	dgg.pruning();
-//	printf("After: %d\n", dgg.degree[dgg.N]);
-//	dgg.write(argv[1]);
-//	//system("pause");
-//	return 0;
-//}
-//

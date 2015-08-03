@@ -61,8 +61,6 @@ int main(int argc, char** argv)
     svg_precompute_hy_pruning(input_file_name, eps_vg, svg_file_name, const_for_theta);
   } else if (method == "d") {
     svg_precompute_hy_fast(input_file_name, eps_vg, svg_file_name, const_for_theta);
-
-
   }
 
   return 0;

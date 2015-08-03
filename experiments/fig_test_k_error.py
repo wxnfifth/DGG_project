@@ -24,8 +24,6 @@ print k_list
 model_name = os.path.basename(obj_path)[:-4]
 dir_name = os.path.dirname(obj_path)
 
-
-
 error_file = os.path.join(dir_name,'%s_k_error_file_time.txt' % (model_name))
 
 for k in k_list:
