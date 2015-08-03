@@ -3,6 +3,8 @@
 
 #binary files
 *.binary
+*.bak
+
 
 
 # User-specific files
