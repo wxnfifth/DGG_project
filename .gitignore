@@ -8,8 +8,8 @@
 
 
 # User-specific files
-*.suo
-*.user
+#*.suo
+#*.user
 *.userosscache
 *.sln.docstates
 
