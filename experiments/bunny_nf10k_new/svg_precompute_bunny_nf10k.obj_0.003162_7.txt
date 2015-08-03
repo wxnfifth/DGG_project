@@ -1,0 +1,13 @@
+******** eps 0.003162 const 7.000000 theta 22.564761 du
+read 5002 verts 10000 faces from file bunny_nf10k.obj 
+There are 5002 non-coincidence vertices.
+loading model took 0.034 seconds.
+Computed 49 percent, time : 5.000826 seconds
+Computed 97 percent, time : 10.000833 seconds
+Before: 583315
+0.003162
+Total number of edges: 229280
+Removing edge#edge: 229280
+After: 229280
+time_past , time : 11.222855 seconds
+total_time_and_pruning 11.092415

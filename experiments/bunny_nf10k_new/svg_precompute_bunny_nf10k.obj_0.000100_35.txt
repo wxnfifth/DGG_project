@@ -1,0 +1,74 @@
+******** eps 0.000100 const 35.000000 theta 20.053857 du
+read 5002 verts 10000 faces from file bunny_nf10k.obj 
+There are 5002 non-coincidence vertices.
+loading model took 0.033 seconds.
+Computed 2 percent, time : 5.022349 seconds
+Computed 6 percent, time : 10.038282 seconds
+Computed 8 percent, time : 15.100981 seconds
+Computed 9 percent, time : 20.165537 seconds
+Computed 10 percent, time : 25.183696 seconds
+Computed 12 percent, time : 30.184141 seconds
+Computed 13 percent, time : 35.240636 seconds
+Computed 14 percent, time : 40.277277 seconds
+Computed 15 percent, time : 45.342506 seconds
+Computed 15 percent, time : 50.404662 seconds
+Computed 17 percent, time : 55.407288 seconds
+Computed 18 percent, time : 60.423135 seconds
+Computed 19 percent, time : 65.470153 seconds
+Computed 21 percent, time : 70.484274 seconds
+Computed 22 percent, time : 75.544400 seconds
+Computed 23 percent, time : 80.673659 seconds
+Computed 24 percent, time : 85.687699 seconds
+Computed 25 percent, time : 90.713783 seconds
+Computed 27 percent, time : 95.734966 seconds
+Computed 28 percent, time : 100.768620 seconds
+Computed 30 percent, time : 105.804529 seconds
+Computed 31 percent, time : 110.864131 seconds
+Computed 32 percent, time : 115.894947 seconds
+Computed 33 percent, time : 120.944672 seconds
+Computed 34 percent, time : 125.982563 seconds
+Computed 36 percent, time : 131.059997 seconds
+Computed 37 percent, time : 136.110433 seconds
+Computed 38 percent, time : 141.205780 seconds
+Computed 39 percent, time : 146.252309 seconds
+Computed 41 percent, time : 151.274124 seconds
+Computed 42 percent, time : 156.293556 seconds
+Computed 44 percent, time : 161.314485 seconds
+Computed 46 percent, time : 166.321444 seconds
+Computed 47 percent, time : 171.344221 seconds
+Computed 49 percent, time : 176.383979 seconds
+Computed 50 percent, time : 181.419192 seconds
+Computed 51 percent, time : 186.450294 seconds
+Computed 54 percent, time : 191.499987 seconds
+Computed 55 percent, time : 196.546765 seconds
+Computed 57 percent, time : 201.591960 seconds
+Computed 58 percent, time : 206.672494 seconds
+Computed 59 percent, time : 211.702693 seconds
+Computed 61 percent, time : 216.753221 seconds
+Computed 63 percent, time : 221.755204 seconds
+Computed 65 percent, time : 226.792714 seconds
+Computed 66 percent, time : 231.845339 seconds
+Computed 67 percent, time : 236.849019 seconds
+Computed 69 percent, time : 241.886315 seconds
+Computed 70 percent, time : 246.920402 seconds
+Computed 72 percent, time : 251.921406 seconds
+Computed 73 percent, time : 256.926177 seconds
+Computed 74 percent, time : 262.001583 seconds
+Computed 76 percent, time : 267.022012 seconds
+Computed 77 percent, time : 272.039501 seconds
+Computed 78 percent, time : 277.085028 seconds
+Computed 80 percent, time : 282.095253 seconds
+Computed 81 percent, time : 287.167814 seconds
+Computed 82 percent, time : 292.236379 seconds
+Computed 84 percent, time : 297.298486 seconds
+Computed 85 percent, time : 302.354665 seconds
+Computed 86 percent, time : 307.383457 seconds
+Computed 88 percent, time : 312.467162 seconds
+Computed 89 percent, time : 317.494375 seconds
+Computed 90 percent, time : 322.552162 seconds
+Computed 92 percent, time : 327.556709 seconds
+Computed 93 percent, time : 332.569422 seconds
+Computed 95 percent, time : 337.578686 seconds
+Computed 96 percent, time : 342.588629 seconds
+Computed 98 percent, time : 347.651573 seconds
+

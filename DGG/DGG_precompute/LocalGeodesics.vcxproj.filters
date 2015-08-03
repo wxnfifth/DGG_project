@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="MMP">
+      <UniqueIdentifier>{fdc659cc-55dd-431d-9b72-5cfd27eefaf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JIAJUN">
+      <UniqueIdentifier>{fe1d67e0-07f0-4e85-9040-96aaa647a854}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ICH">
+      <UniqueIdentifier>{63cc2b7c-7c66-4e67-b0a1-c54f1047df19}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\DGG_precompute\DGG_precompute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DGG_precompute\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DGG_precompute\svg_precompute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\BaseModel.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\Geometry.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ICHWithFurtherPriorityQueue.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ImprovedCHWithEdgeValve.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\Point3D.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\PreviousCH.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\RichModel.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp">
+      <Filter>JIAJUN</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\DGG_precompute\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DGG_precompute\svg_precompute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DGG_precompute\targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DGG_precompute\wxnTime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\BaseModel.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ExactMethodForDGP.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\Geometry.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ICHWithFurtherPriorityQueue.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ImprovedCHWithEdgeValve.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\Point3D.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\PreviousCH.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\RichModel.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\JIAJUN\dgg_pruning.h">
+      <Filter>JIAJUN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_base.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_basement.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_elements.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_vg_mmp.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_constants_and_simple_functions.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_memory.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_mesh.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\geodesic_mesh_elements.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\LinearQueue.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\ListGroup.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\MMP\MyList.h">
+      <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\svg_definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

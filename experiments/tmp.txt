@@ -1,0 +1,14 @@
+ Volume in drive C is OS
+ Volume Serial Number is FACE-6F73
+
+ Directory of c:\project\SVG_LC\experiments
+
+06/05/2015  02:36 AM    <DIR>          .
+06/05/2015  02:36 AM    <DIR>          ..
+06/05/2015  02:05 AM    <DIR>          bunny_nf10k
+24/04/2015  09:22 AM            20,008 bunny_nf10k_K0.010000_degree_new.txt
+24/04/2015  09:22 AM         1,862,752 bunny_nf10k_K0.010000_new.edge
+06/05/2015  02:36 AM               681 test_k_error.py
+06/05/2015  02:36 AM                 0 tmp.txt
+               4 File(s)      1,883,441 bytes
+               3 Dir(s)  181,954,183,168 bytes free
