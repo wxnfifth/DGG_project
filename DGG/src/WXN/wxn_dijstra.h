@@ -15,7 +15,6 @@
 #include "ICH\RichModel.h"
 
 template<typename T>  class SparseGraph{
-
 protected:
   std::vector<std::vector<int>> graph_neighbor;
   std::vector<std::vector<int>> graph_pos_in_neighbor;

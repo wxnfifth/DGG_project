@@ -85,6 +85,50 @@ int main(int argc, char** argv)
     // fprintf(stderr,"size before %d\n" , sizeof(*s_graph));
     s_graph->read_svg_file_binary((string)svg_file_name);
     // fprintf(stderr,"size after %d\n" , sizeof(*s_graph));
+#if 0
+    double d_ss = 0;
+    double d_ns = 0;
+    double d_nn = 0;
+    double degree_saddle = 0;
+    double degree_non_saddle = 0;
+    int num_s = 0;
+    int num_n = 0;
+    int n = rich_model.GetNumOfVerts();
+    for (int i = 0; i < rich_model.GetNumOfVerts(); ++i) {
+      if ( !rich_model.IsConvexVert(i)) {//is saddle
+      //if (rich_model.AngleSum(i) > 2 * PI) {
+        for (int j = 0; j < s_graph->graph_neighbor[i].size(); ++j) {
+          int neigh = s_graph->graph_neighbor[i][j];
+          if (!rich_model.IsConvexVert(neigh)) {//is saddle
+          //if (rich_model.AngleSum(neigh) > 2 * PI) {
+            d_ss++;
+          }else{
+            ;
+          }
+        }
+        degree_saddle += s_graph->graph_neighbor[i].size();
+        num_s ++;
+      }else{//is convex
+        for (int j = 0; j < s_graph->graph_neighbor[i].size(); ++j) {
+          int neigh = s_graph->graph_neighbor[i][j];
+          //if (rich_model.AngleSum(neigh) > 2 * PI) {
+          if (!rich_model.IsConvexVert(neigh)) {//is saddle
+            d_ns++;
+          }else{
+            d_nn++;
+          }
+        }
+        degree_non_saddle += s_graph->graph_neighbor[i].size();
+        num_n ++;
+      }
+    }
+    d_ss /= num_s; d_ns /= num_n; d_nn /= num_n;
+    degree_saddle /= n; degree_non_saddle /= n;
+    fprintf(stderr, "degree_saddle %lf degree_non_saddle %lf\n" , degree_saddle, degree_non_saddle);
+    fprintf(stderr, "d_ss %lf d_ns %lf d_nn %lf\n" , d_ss, d_ns, d_nn);
+    fprintf(stderr, "num_s %d num_n %d\n" , num_s, num_n);
+#endif
+
   } else if (method == "lll") {
     s_graph = new LC_LLL<float>();
     s_graph->read_svg_file_with_angle((string)svg_file_name);//load the precomputed infomation 
@@ -101,6 +145,9 @@ int main(int argc, char** argv)
      fprintf(stderr,"invalid choice\n"); 
     return 1;
   }
+
+
+
 
   vector<pair<double,double>> erros_list;//<dis,error>
   std::mt19937 rng;
