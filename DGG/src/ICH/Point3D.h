@@ -32,7 +32,17 @@ public:
 	inline void Show() const;
 	inline void ShowWithNormal(const CPoint3D& normal)const;
 	inline void SetColor() const;
+	inline bool equal(const CPoint3D& p) const;
 };
+
+bool CPoint3D::equal(const CPoint3D& p) const 
+{
+	if ( fabs(x-p.x) < 1e-8 && fabs(y-p.y) < 1e-8 && fabs(z-p.z) < 1e-8) {
+		return true;
+	}
+	return false;
+}
+
 
 CPoint3D& CPoint3D::operator +=(const CPoint3D& pt)
 {

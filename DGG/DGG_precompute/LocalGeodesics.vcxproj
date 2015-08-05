@@ -168,7 +168,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\DGG_precompute\DGG_precompute.cpp" />
-    <ClCompile Include="..\src\DGG_precompute\stdafx.cpp" />
     <ClCompile Include="..\src\DGG_precompute\svg_precompute.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
@@ -181,7 +180,6 @@
     <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\DGG_precompute\stdafx.h" />
     <ClInclude Include="..\src\DGG_precompute\svg_precompute.h" />
     <ClInclude Include="..\src\DGG_precompute\targetver.h" />
     <ClInclude Include="..\src\DGG_precompute\wxnTime.h" />

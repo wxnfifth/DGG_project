@@ -340,6 +340,8 @@ void CExactMethodForDGP::Execute()
 }
 
 
+
+
 CPoint3D CExactMethodForDGP::BackTraceDirectionOnly(int indexOfVert){
 	CPoint3D ret;
 	if (m_InfoAtVertices[indexOfVert].birthTime == -1)

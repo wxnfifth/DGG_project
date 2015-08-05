@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "wxnMath.h"
 #include "ich\Point3D.h"
+#include "gl\glut.h"
 
 double cos_from_edges(double const a,			//compute the cosine of the angle given the lengths of the edges
 							 double const b,
@@ -17,19 +18,19 @@ double cos_from_edges(double const a,			//compute the cosine of the angle given 
 }
 
 
-void renderTorus(const CPoint3D& p , const CPoint3D& color , const double radius , const int& sub_times)
-{
-    glDisable(GL_LIGHTING);
-    glPushMatrix();
-    glTranslatef( p.x,p.y,p.z);
-    color.SetColor();
-    glutSolidTorus(radius * 0.2 , radius * 1.1 , sub_times , sub_times); 
-    glPopMatrix();
-    glEnable(GL_LIGHTING);
-    //void glutSolidTorus(GLdouble innerRadius,
-    //                GLdouble outerRadius,
-    //                GLint nsides, GLint rings);
-}
+//void renderTorus(const CPoint3D& p , const CPoint3D& color , const double radius , const int& sub_times)
+//{
+//    glDisable(GL_LIGHTING);
+//    glPushMatrix();
+//    glTranslatef( p.x,p.y,p.z);
+//    color.SetColor();
+//    glutSolidTorus(radius * 0.2 , radius * 1.1 , sub_times , sub_times); 
+//    glPopMatrix();
+//    glEnable(GL_LIGHTING);
+//    //void glutSolidTorus(GLdouble innerRadius,
+//    //                GLdouble outerRadius,
+//    //                GLint nsides, GLint rings);
+//}
 
 void renderSphere(const CPoint3D& p , const CPoint3D& color , const double radius , const int& sub_times)
 {
