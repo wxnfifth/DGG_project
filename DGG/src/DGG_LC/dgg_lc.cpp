@@ -6,6 +6,8 @@
 #include <psapi.h>
 #include <stdio.h>   
 #include <tchar.h>
+#include <cmath>
+#include <cfloat>
 #include "wxn\wxnTime.h"
 #include "wxn\wxn_dijstra.h"
 #include "svg_definition.h"
@@ -182,26 +184,24 @@ int main(int argc, char** argv)
  
     max_dis = std::max(max_dis,*std::max_element(correct_dis.begin(), correct_dis.end()));
 
-    double average_error= 0;
-    int cnt = 0;
-    for (int i = 0; i < correct_dis.size(); ++i) {
-      if (fabs(correct_dis[i]) < 1e-6) continue;
-      double error = fabs(s_graph->distanceToSource(i) - correct_dis[i])/correct_dis[i];
-      average_error += error;
-      cnt++;
-    }
-     fprintf(stderr,"average_error %.10lf\n" , average_error / cnt);
     int cnt_error_dis = 0;
+    double average_error = 0;
+    int cnt_finite = 0;
     for (int i = 0; i < correct_dis.size(); ++i) {
-      if (fabs(correct_dis[i]) < 1e-6 ) continue;
-      double error = fabs(s_graph->distanceToSource(i) - correct_dis[i])/correct_dis[i];
+      if (fabs(correct_dis[i]) < 1e-7 ) continue;
+      double dis = s_graph->distanceToSource(i);
+      if (!_finite(correct_dis[i]) || !_finite(dis)) continue;
+      double error = fabs(dis - correct_dis[i])/correct_dis[i];
       if (error > 1) {
         cnt_error_dis ++;
         continue; 
       }
+      cnt_finite ++;
+      average_error += error;
       erros_list.push_back(make_pair(correct_dis[i],error));
     }
      fprintf(stderr,"________error dis percent %.2lf\n" , (double)cnt_error_dis / correct_dis.size());
+     fprintf(stderr,"cnt_finite_percent %lf average_error %.10lf\n" , cnt_finite / (double)correct_dis.size() , average_error / cnt_finite);
   }
 
   double all_average_error;
