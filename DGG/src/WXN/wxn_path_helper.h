@@ -21,7 +21,31 @@ class CylinderPath{
   double radius_;
 public:
   CylinderPath(double radius):radius_(radius){}
-  void addGeodesicPath(CRichModel& model, int v0, int v1)
+
+	void addGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts)
+  {
+    vector<int> sources;
+    sources.push_back(v0);
+    CICHWithFurtherPriorityQueue ich_algoritm(model,sources);
+    ich_algoritm.Execute();
+
+		for (auto& v:vts) {
+			vector<CPoint3D> path_points;
+			vector<IntersectionWithPath> paths;
+			ich_algoritm.FindSourceVertex(v, paths);
+			for (auto& p:paths) {
+				path_points.push_back(p.GetPosition(model));
+			}
+
+			//CylinderPath cylinder_path(0.002);
+			for (int i = 0; i < path_points.size() - 1; ++i) {
+				addLine(path_points[i],path_points[i+1]);
+			}
+		}
+  }
+
+
+	void addGeodesicPath(CRichModel& model, int v0, int v1)
   {
     vector<int> sources;
     sources.push_back(v0);

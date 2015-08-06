@@ -70,6 +70,7 @@ void computeDests(CRichModel& model, const string& input_obj_name,
   covered_points.resize(fixedDests.size());
   int _index = 0;
   for (auto& d:fixedDests) {
+		dest_verts.insert(d.first);
     geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
     double dis;
     algorithm->best_source(dest_p, dis);
@@ -483,31 +484,21 @@ void figure8_a()
   CRichModel model(model_filename);
   model.Preprocess();
   int source = 14706;
-  int dest1;
-  CPoint3D fan1_p1,fan1_p2;
-  int dest2;
-  CPoint3D fan2_p1,fan2_p2;
   double eps_vg = 0.001;
   double cylinder_radius = 0.0002;
-  computeDests(model, model_filename,eps_vg,source,dest1,fan1_p1,fan1_p2,dest2,fan2_p1,fan2_p2);
+	set<int> dest_verts;
+	computeDests(model, model_filename,eps_vg,source,dest_verts);
   CylinderPath cylinder1(cylinder_radius);
-  cylinder1.addGeodesicPath(model,source,dest1);
-  cylinder1.addLine(model.Vert(source),fan1_p1);
-  cylinder1.addLine(model.Vert(source),fan1_p2);
-  cylinder1.write_to_file("bunny_fan1.obj");
-  CylinderPath cylinder2(cylinder_radius);
-  cylinder2.addGeodesicPath(model,source,dest2);
-  cylinder2.addLine(model.Vert(source),fan2_p1);
-  cylinder2.addLine(model.Vert(source),fan2_p2);
-  cylinder2.write_to_file("bunny_fan2.obj");
-  
-  vector<CPoint3D> source_verts;
-  source_verts.push_back(model.Vert(source));
-  printBallToObj(source_verts, "bunny_source.obj", cylinder_radius * 6);
-  vector<CPoint3D> dest_verts;
-  dest_verts.push_back(model.Vert(dest1));
-  dest_verts.push_back(model.Vert(dest2));
-  printBallToObj(dest_verts, "bunny_dest.obj", cylinder_radius * 4);
+	cylinder1.addGeodesicPaths(model,source,vector<int>(dest_verts.begin(),dest_verts.end()));
+	cylinder1.write_to_file("bunny_dgg_edges.obj");
+	vector<CPoint3D> source_pts;
+	source_pts.push_back(model.Vert(source));
+	printBallToObj(source_pts, "bunny_source.obj", cylinder_radius * 6);
+  vector<CPoint3D> dest_pts;
+	for (auto& v:dest_verts) {
+		dest_pts.push_back(model.Vert(v));
+	}
+	printBallToObj(dest_pts, "bunny_dgg_edges_pts.obj", cylinder_radius * 4);
   
 
 
@@ -553,6 +544,7 @@ void figure8_b()
 
 int main()
 {
-  figure8_b();
+	figure8_a();
+  //figure8_b();
 
 }
