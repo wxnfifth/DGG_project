@@ -484,7 +484,7 @@ void figure8_a()
   CRichModel model(model_filename);
   model.Preprocess();
   int source = 14706;
-  double eps_vg = 0.001;
+  double eps_vg = 0.005;
   double cylinder_radius = 0.0002;
 	set<int> dest_verts;
 	computeDests(model, model_filename,eps_vg,source,dest_verts);
@@ -500,8 +500,6 @@ void figure8_a()
 	}
 	printBallToObj(dest_pts, "bunny_dgg_edges_pts.obj", cylinder_radius * 4);
   
-
-
 }
 
 
@@ -515,7 +513,7 @@ void figure8_b()
   CPoint3D fan1_p1,fan1_p2;
   int dest2;
   CPoint3D fan2_p1,fan2_p2;
-  double eps_vg = 0.001;
+  double eps_vg = 0.005;
   double cylinder_radius = 0.0002;
   computeDestFan(model, model_filename,eps_vg,source,dest1,fan1_p1,fan1_p2,dest2,fan2_p1,fan2_p2);
   CylinderPath cylinder1(cylinder_radius);
