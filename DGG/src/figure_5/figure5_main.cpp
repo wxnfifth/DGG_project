@@ -4,24 +4,37 @@
 #include "ICH\ICHWithFurtherPriorityQueue.h"
 #include "MMP\geodesic_algorithm_vg_mmp.h"
 
-void findDest(CRichModel& model, int source, int dest)
+int findDest(CRichModel& model ,string& input_obj_name ,int source, double eps_vg)
 {
   std::vector<double> points;	
   std::vector<unsigned> faces;
   std::vector<int> realIndex;
   int originalVertNum = 0;
-  CRichModel model(input_obj_name);
-  model.Preprocess();
+  //CRichModel model(input_obj_name);
+  //model.Preprocess();
 
   clock_t start = clock();
   bool success = geodesic::read_mesh_from_file(input_obj_name.c_str(),points,faces, realIndex, originalVertNum);
-  if(!success)
+  if(!success) 
   {
     fprintf(stderr, "something is wrong with the input file\n" );
-    return;
+    exit(1);
   }
   geodesic::Mesh mesh;
   mesh.initialize_mesh_data(points, faces);		//create internal
+
+
+	int source_index = source;
+	vector<int> srcs;
+	srcs.push_back(source_index);
+	vector<geodesic::SurfacePoint> sources;
+	for (unsigned i = 0; i < srcs.size(); ++i)
+	{
+		srcs[i] %= originalVertNum;
+		srcs[i] = realIndex[srcs[i]];
+		sources.push_back(geodesic::SurfacePoint(&mesh.vertices()[srcs[i]]));
+	}
+
 
   geodesic::GeodesicAlgorithmBase *algorithm;
 
@@ -35,24 +48,23 @@ void findDest(CRichModel& model, int source, int dest)
   map<int,double> fixedDests;
   algorithm->propagate_vg(sources, eps_vg, fixedDests);
 
-
-
-
+	return fixedDests.rbegin()->first;
 
 }
 
 void figure_6()
 {
   string input_obj_name = "fertility_nf30k_anisotropic.obj";
-  CRichModel model();
+	CRichModel model(input_obj_name);
   model.Preprocess();
   int source = 3465;//10848;//8056;
   //int dest = 5761;//14229;//5924;
+	double eps_vg = 0.0001;
   int dest;
-  findDest(model,source,dest);
+  dest = findDest(model,input_obj_name,source,eps_vg);
 
 
-  double cylinder_radius = 0.002;
+  double cylinder_radius = 0.001;
   CylinderPath cylinder_path(cylinder_radius);
   cylinder_path.addGeodesicPath(model,source,dest);
   cylinder_path.write_to_file("fertility_path_staight.obj");
@@ -95,8 +107,8 @@ void figure_6()
   for (int i = 0; i < 20; ++i) {
     printf("vert(i %d) error %lf \n" , vert_error[i].first, vert_error[i].second);
   }
-
   int mid_vert = vert_error[10].first;
+	printf("choose vert(i %d) error %lf \n" , vert_error[10].first, vert_error[10].second);
   CylinderPath cylinder_path_eps(cylinder_radius);
   cylinder_path_eps.addGeodesicPath(model,source,mid_vert);
   cylinder_path_eps.addGeodesicPath(model,mid_vert,dest);
@@ -106,7 +118,7 @@ void figure_6()
   points.push_back(model.Vert(source));
   points.push_back(model.Vert(dest));
   points.push_back(model.Vert(mid_vert));
-  printBallToObj(points, "points_2.obj", cylinder_radius * 5);
+  printBallToObj(points, "points_2.obj", cylinder_radius * 3);
 
 }
 
