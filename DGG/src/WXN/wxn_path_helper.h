@@ -69,6 +69,11 @@ public:
   {
     generateCylinder(p0, p1, verts_,faces_, radius_);
   }
+  void addLine(const CPoint3D&p0, const CPoint3D& p1,const double len)
+  {
+    auto& p_end = p0 + (p1-p0).Normalize() * len;
+    generateCylinder(p0, p_end, verts_,faces_, radius_);
+  }
   void write_to_file(const string& filename) {
     output_cylinder(filename, verts_, faces_);
   }

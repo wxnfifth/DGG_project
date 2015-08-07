@@ -134,7 +134,7 @@
     <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\figure_5\figure5_main.cpp" />
+    <ClCompile Include="..\src\figure_6\figure6_main.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />

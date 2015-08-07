@@ -21,6 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A568F603-A32C-4A4A-9CE6-24BF6F5A9678}</ProjectGuid>
     <RootNamespace>figure_8</RootNamespace>
+    <ProjectName>figure_7</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -119,7 +120,7 @@
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\x64\Release\figure_8.exe ..\..\bin\figure_8.exe</Command>
+      <Command>copy ..\x64\Release\figure_7.exe ..\..\bin\figure_7.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -134,6 +135,7 @@
     <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\figure_7\figure7_main.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />
@@ -143,7 +145,6 @@
     <ClCompile Include="..\src\ICH\PreviousCH.cpp" />
     <ClCompile Include="..\src\ICH\RichModel.cpp" />
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
-    <ClCompile Include="figure8_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

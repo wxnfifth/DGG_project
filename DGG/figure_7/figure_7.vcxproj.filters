@@ -50,9 +50,6 @@
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="figure8_main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ICH\ImprovedCHWithEdgeValve.cpp">
       <Filter>ICH</Filter>
     </ClCompile>
@@ -76,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="..\src\ICH\ICHWithFurtherPriorityQueue.cpp">
       <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\figure_7\figure7_main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
