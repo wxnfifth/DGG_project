@@ -161,7 +161,7 @@
       <AdditionalDependencies>glut64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\x64\Release\dgg_lc.exe ..\..\bin</Command>
+      <Command>copy ..\x64\Release\dgg_lc.exe ..\..\bin\dgg_lc.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

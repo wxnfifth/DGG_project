@@ -7,6 +7,7 @@
 #include "MMP\geodesic_algorithm_vg_mmp.h"
 #include "JIAJUN\dgg_pruning.h"
 #include "svg_definition.h"
+#include <thread>
 
 bool flag_first_output = true;
 void generate_output(const string& output_file_name,stringstream& output_str,bool force_output = false)
@@ -1448,7 +1449,47 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
 
 }
 
-void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num)
+void combinePartPrecomputeFiles(const vector<string>& part_filenames,const string& svg_filename, int num_of_vertex, int thread_num)
+{
+	HeadOfSVG head;
+	head.begin_vertex_index = 0; head.end_vertex_index = num_of_vertex - 1;
+	head.num_of_vertex = num_of_vertex;
+	ofstream output_file (svg_filename.c_str() , ios::out | ios::binary);
+	output_file.write((char*)&head , sizeof(head));
+
+	for (int thread_id = 0; thread_id < thread_num; ++thread_id) {
+		const string& part_svg_filename = part_filenames[thread_id];
+		std::ifstream input_file (part_svg_filename, std::ios::in | std::ios::binary);
+		HeadOfSVG head_of_svg;
+		input_file.read( (char*)&head_of_svg , sizeof(head_of_svg));
+		//		printf("head %d %d vert_sz %d\n" , head_of_svg.begin_vertex_index , head_of_svg.end_vertex_index, head_of_svg.num_of_vertex);
+
+		for (int i = head_of_svg.begin_vertex_index; i <= head_of_svg.end_vertex_index;++i) {
+			//printf("i%d\n" , i);
+			BodyHeadOfSVG body_head;
+			input_file.read((char*)&body_head , sizeof(body_head));
+			//printf("readed head\n");
+			vector<BodyPartOfSVGWithAngle> body_parts;
+			//printf("neigh %d\n" , body_head.neighbor_num);
+			body_parts.reserve(body_head.neighbor_num);
+			//printf("neigh %d\n" , body_head.neighbor_num);
+			for(int j = 0; j < body_head.neighbor_num;++j) {
+				//printf("j%d\n" , j);
+				BodyPartOfSVGWithAngle body_part;
+				input_file.read((char*)&body_part , sizeof(body_part));
+				body_parts.push_back(body_part);
+			}
+			output_file.write((char*)&body_head , sizeof(body_head));
+			for (auto& b:body_parts) {
+				output_file.write((char*)&b , sizeof(b));
+			}
+		}
+		input_file.close();
+	}
+	output_file.close();
+}
+
+void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg, string& output_filename, double const_for_theta, int thread_num)
 {
   ElapasedTime total_t;
   double theta = asin(sqrt(eps_vg));
@@ -1474,29 +1515,49 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
   clock_t end = clock();
   fprintf(stderr, "loading model took %.2lf secodns\n" , (double)(end - start) / (double)CLOCKS_PER_SEC);;
 
-  char buf[1024];
-  sprintf(buf,"%s_DGG%lf_c%.0lf.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta);
-  svg_file_name = string(buf);
-  //svg_file_name = input_obj_name.substr(0,input_obj_name.length() - 4 ) 
-  //  + "_HY" + to_string(eps_vg) +  ".binary";
 
-  int begin_vertex_index = 0;
+	//seperate vertices to parts
+	vector<HeadOfSVG> heads;
+	vector<string> svg_part_file_names;
+	int part_size = model.GetNumOfVerts() / thread_num;
+	for (int i = 0; i < thread_num; ++i) {
+		HeadOfSVG head;
+		head.num_of_vertex = model.GetNumOfVerts();
+		head.begin_vertex_index =  i * part_size;
+		if (i != thread_num - 1) {
+			head.end_vertex_index = (i+1)*part_size - 1;
+		}else{
+			head.end_vertex_index = model.GetNumOfVerts() - 1;
+		}
+		heads.push_back(head);
+		printf("head %d %d vert_sz %d\n" , head.begin_vertex_index , head.end_vertex_index, head.num_of_vertex);
+		char buf[1024];
+		sprintf(buf, "%s_DGG%lf_c%.0lf_part%d.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta,i);
+		svg_part_file_names.push_back((string)buf);
+	}
+	
+	for (int thread_id = 0; thread_id < thread_num; ++thread_id) {
+		const string& part_svg_filename = svg_part_file_names[thread_id];
+		const HeadOfSVG& head = heads[thread_id];
+		ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
+		output_file.write((char*)&head , sizeof(head));
+		ElapasedTime time_total;
 
-  int end_vertex_index = points.size() / 3 - 1;
+		for (int i = head.begin_vertex_index; i <= head.end_vertex_index;++i) {
+			dggPropagate(i, mesh, eps_vg, theta, output_file,model);
+		}
+		output_file.close();
+	}
 
-  ofstream output_file (svg_file_name.c_str() , ios::out | ios::binary);
-  int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
-  HeadOfSVG head_of_svg(begin_vertex_index , end_vertex_index , num_of_vertex );     
-  output_file.write((char*)&head_of_svg , sizeof(head_of_svg));
-  ElapasedTime time_total;
+	//combine svg_files
+	char buf[1024];
+	sprintf(buf,"%s_DGG%lf_c%.0lf.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta);
+	string svg_file_name = string(buf);
+	ElapasedTime combine_time;
+	combinePartPrecomputeFiles(svg_part_file_names, svg_file_name, model.GetNumOfVerts(), thread_num);
+	combine_time.printTime("combine time");
 
 
-  for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
-    dggPropagate(tmp_source,mesh,eps_vg,theta,output_file,model);
-  }
-  output_file.close();
-
-  string output_filename;
   double prune_time;
   JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
 
