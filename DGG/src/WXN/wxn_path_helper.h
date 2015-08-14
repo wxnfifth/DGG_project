@@ -44,7 +44,6 @@ public:
 		}
   }
 
-
 	void addGeodesicPath(CRichModel& model, int v0, int v1)
   {
     vector<int> sources;
@@ -64,6 +63,12 @@ public:
       addLine(path_points[i],path_points[i+1]);
     }
   }
+	void addGeodesicPaths(CRichModel& model, vector<int>& vts)
+  {
+    for (int i = 0; i < vts.size() - 1; ++i) {
+      addGeodesicPath(model,vts[i],vts[i+1]);
+    }
+  }
 
   void addLine(const CPoint3D&p0, const CPoint3D& p1)
   {
@@ -73,6 +78,12 @@ public:
   {
     auto& p_end = p0 + (p1-p0).Normalize() * len;
     generateCylinder(p0, p_end, verts_,faces_, radius_);
+  }
+  void addLines(const vector<CPoint3D>& pts)
+  {
+    for (int i = 0; i < pts.size() - 1; ++i) {
+      addLine(pts[i], pts[i+1]);
+    }
   }
   void write_to_file(const string& filename) {
     output_cylinder(filename, verts_, faces_);

@@ -163,7 +163,7 @@
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy ..\x64\Release\dgg_precompute.exe ..\..\bin</Command>
+      <Command>copy ..\x64\Release\dgg_precompute.exe ..\..\bin\dgg_precompute.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

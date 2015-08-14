@@ -20,6 +20,26 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\figure_4\figure4_main.cpp" />
+    <ClCompile Include="..\src\ICH\BaseModel.cpp" />
+    <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
+    <ClCompile Include="..\src\ICH\Geometry.cpp" />
+    <ClCompile Include="..\src\ICH\ICHWithFurtherPriorityQueue.cpp" />
+    <ClCompile Include="..\src\ICH\ImprovedCHWithEdgeValve.cpp" />
+    <ClCompile Include="..\src\ICH\Point3D.cpp" />
+    <ClCompile Include="..\src\ICH\PreviousCH.cpp" />
+    <ClCompile Include="..\src\ICH\RichModel.cpp" />
+    <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\ICH\BaseModel.h" />
+    <ClInclude Include="..\src\ICH\ExactMethodForDGP.h" />
+    <ClInclude Include="..\src\ICH\Geometry.h" />
+    <ClInclude Include="..\src\ICH\ICHWithFurtherPriorityQueue.h" />
+    <ClInclude Include="..\src\ICH\ImprovedCHWithEdgeValve.h" />
+    <ClInclude Include="..\src\ICH\Point3D.h" />
+    <ClInclude Include="..\src\ICH\PreviousCH.h" />
+    <ClInclude Include="..\src\ICH\RichModel.h" />
+    <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8CD6EDC6-89F0-45FE-B1BB-3AD6A879D7CA}</ProjectGuid>
@@ -113,13 +133,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy ..\x64\Release\figure4.exe ..\..\bin\figure4.exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
