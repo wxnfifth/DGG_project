@@ -10,6 +10,52 @@
 #include <thread>
 
 bool flag_first_output = true;
+struct WxnBuffer{
+	char* buf;
+	int len;
+	int capacity;
+	FILE* file;
+	WxnBuffer(FILE* _file) :file(_file) {
+		capacity = 16 * 1024 * 1024;
+		buf = new char[capacity];
+		len = 0;
+	}
+	void addStruct(const void* ptr, int struct_size)
+	{
+		//fwrite(ptr, struct_size, 1, file);
+		//return;
+		if (len + struct_size > capacity) {
+			fwrite(buf, sizeof(char), len, file);
+			len = 0;
+		}
+
+		if (struct_size > capacity) {
+			fprintf(stderr, "str too large!");
+			exit(1);
+		}
+		memcpy((void*)(buf + len), ptr, struct_size);
+		len += struct_size;
+	}
+	void addText(const char* str, int str_len) {
+		if (len + str_len > capacity) {
+			fwrite(buf, sizeof(char), len, file);
+			len = 0;
+		}
+		if (str_len > capacity) {
+			fprintf(stderr, "str too large!");
+			exit(1);
+		}
+		for (int i = 0; i < str_len; ++i) {
+			buf[len++] = str[i];
+		}
+	}
+
+	~WxnBuffer(){
+		delete[] buf;
+	}
+};
+
+
 void generate_output(const string& output_file_name,stringstream& output_str,bool force_output = false)
 {
     if( force_output || output_str.tellp() > 50 * 1024 * 1024 ){
@@ -1238,7 +1284,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
 
 
 void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
-                  double theta, ofstream& output_file, const CRichModel& model)
+                  double theta, WxnBuffer& buffer, const CRichModel& model)
 {
     vector<int> srcs;
     srcs.push_back(source_index);
@@ -1295,7 +1341,9 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
       mp[covered_points[i].id] = i;
     }
     BodyHeadOfSVG body_header(source_index , dests.size());  
-    output_file.write((char*)&body_header , sizeof(body_header));
+    //output_file.write((char*)&body_header , sizeof(body_header));
+	//fwrite(&body_header, sizeof(body_header), 1, output_file);
+	buffer.addStruct(&body_header, sizeof(body_header));
 
     vector<BodyPartOfSVGWithK> body_parts(dests.size());
     for(int i = 0; i < dests.size(); ++i) {
@@ -1441,12 +1489,37 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
     }
 
     for (auto& b:body_parts_with_angle) {
-      output_file.write((char*)&b , sizeof(b));    
-    }
-
+      //output_file.write((char*)&b , sizeof(b));    
+		//fwrite(&b, sizeof(b), 1, output_file);
+		buffer.addStruct(&b, sizeof(b));
+	}
     delete algorithm;
     algorithm = NULL;
+}
 
+
+void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename, 
+											geodesic::Mesh& mesh, double eps_vg,
+											double theta, const CRichModel& model)
+{
+	//ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
+	FILE* output_file = fopen(part_svg_filename.c_str(), "wb");
+	WxnBuffer buffer(output_file);
+	//output_file.write((char*)&head , sizeof(head));
+	//fwrite(&head, sizeof(head), 1, output_file);
+	buffer.addStruct((void*)&head, sizeof(head));
+	ElapasedTime time_total;
+	double last_t;
+	for (int i = head.begin_vertex_index; i <= head.end_vertex_index; ++i) {
+		if (time_total.getTime() - last_t > 5) {
+			time_total.printTime("time");
+			last_t = time_total.getTime();
+		}
+		dggPropagate(i, mesh, eps_vg, theta, buffer, model);
+	}
+	time_total.printTime("part time");
+	//output_file.close();
+	fclose(output_file);
 }
 
 void combinePartPrecomputeFiles(const vector<string>& part_filenames,const string& svg_filename, int num_of_vertex, int thread_num)
@@ -1536,19 +1609,23 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
 		svg_part_file_names.push_back((string)buf);
 	}
 	
+	std::thread *tt = new std::thread[thread_num];
+
 	for (int thread_id = 0; thread_id < thread_num; ++thread_id) {
-		const string& part_svg_filename = svg_part_file_names[thread_id];
-		const HeadOfSVG& head = heads[thread_id];
-		ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
-		output_file.write((char*)&head , sizeof(head));
-		ElapasedTime time_total;
+		tt[thread_id] = std::thread(&dggPropagateHead, std::ref(heads[thread_id]), std::ref(svg_part_file_names[thread_id]), 
+														mesh, eps_vg, theta, std::ref(model));
 
-		for (int i = head.begin_vertex_index; i <= head.end_vertex_index;++i) {
-			dggPropagate(i, mesh, eps_vg, theta, output_file,model);
-		}
-		output_file.close();
+		//void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename, 
+		//									geodesic::Mesh& mesh, double eps_vg,
+		//									double theta, const CRichModel& model)
+
+		//dggPropagateHead(heads[thread_id], svg_part_file_names[thread_id], 
+		//												mesh, eps_vg, theta, model);
 	}
-
+	for (int i = 0; i < thread_num; ++i){
+		tt[i].join();
+	}
+		delete[] tt;
 	//combine svg_files
 	char buf[1024];
 	sprintf(buf,"%s_DGG%lf_c%.0lf.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta);
