@@ -1284,7 +1284,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
 
 
 void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
-                  double theta, WxnBuffer& buffer, const CRichModel& model)
+                  double theta, FILE* output_file, const CRichModel& model)
 {
     vector<int> srcs;
     srcs.push_back(source_index);
@@ -1342,8 +1342,8 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
     }
     BodyHeadOfSVG body_header(source_index , dests.size());  
     //output_file.write((char*)&body_header , sizeof(body_header));
-	//fwrite(&body_header, sizeof(body_header), 1, output_file);
-	buffer.addStruct(&body_header, sizeof(body_header));
+	fwrite(&body_header, sizeof(body_header), 1, output_file);
+	//buffer.addStruct(&body_header, sizeof(body_header));
 
     vector<BodyPartOfSVGWithK> body_parts(dests.size());
     for(int i = 0; i < dests.size(); ++i) {
@@ -1490,8 +1490,8 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
 
     for (auto& b:body_parts_with_angle) {
       //output_file.write((char*)&b , sizeof(b));    
-		//fwrite(&b, sizeof(b), 1, output_file);
-		buffer.addStruct(&b, sizeof(b));
+		fwrite(&b, sizeof(b), 1, output_file);
+		//buffer.addStruct(&b, sizeof(b));
 	}
     delete algorithm;
     algorithm = NULL;
@@ -1504,10 +1504,10 @@ void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename,
 {
 	//ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
 	FILE* output_file = fopen(part_svg_filename.c_str(), "wb");
-	WxnBuffer buffer(output_file);
+	//WxnBuffer buffer(output_file);
 	//output_file.write((char*)&head , sizeof(head));
-	//fwrite(&head, sizeof(head), 1, output_file);
-	buffer.addStruct((void*)&head, sizeof(head));
+	fwrite(&head, sizeof(head), 1, output_file);
+	//buffer.addStruct((void*)&head, sizeof(head));
 	ElapasedTime time_total;
 	double last_t;
 	for (int i = head.begin_vertex_index; i <= head.end_vertex_index; ++i) {
@@ -1515,7 +1515,7 @@ void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename,
 			time_total.printTime("time");
 			last_t = time_total.getTime();
 		}
-		dggPropagate(i, mesh, eps_vg, theta, buffer, model);
+		dggPropagate(i, mesh, eps_vg, theta, output_file, model);
 	}
 	time_total.printTime("part time");
 	//output_file.close();
