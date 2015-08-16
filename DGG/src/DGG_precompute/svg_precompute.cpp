@@ -1499,7 +1499,7 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
 
 
 void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename, 
-											geodesic::Mesh mesh, double eps_vg,
+											geodesic::Mesh& mesh, double eps_vg,
 											double theta, const CRichModel& model)
 {
 	//ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
@@ -1616,7 +1616,7 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
 
 	for (int thread_id = 0; thread_id < thread_num; ++thread_id) {
 		tt[thread_id] = std::thread(&dggPropagateHead, std::ref(heads[thread_id]), std::ref(svg_part_file_names[thread_id]), 
-														mesh, eps_vg, theta, std::ref(model));
+														std::ref(mesh), eps_vg, theta, std::ref(model));
 
 		//void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename, 
 		//									geodesic::Mesh& mesh, double eps_vg,
