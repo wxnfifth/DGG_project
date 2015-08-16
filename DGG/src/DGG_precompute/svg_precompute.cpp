@@ -1512,8 +1512,11 @@ void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename,
 	double last_t;
 	for (int i = head.begin_vertex_index; i <= head.end_vertex_index; ++i) {
 		if (time_total.getTime() - last_t > 5) {
-			time_total.printTime("time");
+			//time_total.printTime("time");
+			double percent = (i - head.begin_vertex_index) / (double)(head.end_vertex_index - head.begin_vertex_index) * 100.0;
 			last_t = time_total.getTime();
+			double remain_hours = last_t / percent * 100.0 / 3600.0;
+			printf("current %.2lf percent, time %lf s, remain %.2lf hours\n", percent, last_t, remain_hours);
 		}
 		dggPropagate(i, mesh, eps_vg, theta, output_file, model);
 	}
