@@ -1499,7 +1499,7 @@ void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
 
 
 void dggPropagateHead(const HeadOfSVG& head, const string& part_svg_filename, 
-											geodesic::Mesh& mesh, double eps_vg,
+											geodesic::Mesh mesh, double eps_vg,
 											double theta, const CRichModel& model)
 {
 	//ofstream output_file (part_svg_filename.c_str() , ios::out | ios::binary);
