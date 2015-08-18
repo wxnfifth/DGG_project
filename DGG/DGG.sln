@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DGG_LC", "DGG_LC\SVG_LC.vcxproj", "{A20CA87B-32EE-493D-A286-63A48A00C4C0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DGG_precompute", "DGG_precompute\LocalGeodesics.vcxproj", "{918929F4-70FD-4B9C-B56D-1E9D5205227C}"
@@ -10,6 +12,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "figure4", "figure4\figure4.vcxproj", "{8CD6EDC6-89F0-45FE-B1BB-3AD6A879D7CA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "figure_7", "figure_7\figure_7.vcxproj", "{A568F603-A32C-4A4A-9CE6-24BF6F5A9678}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "figure_sphere", "figure_sphere\figure_sphere.vcxproj", "{E13D8F10-D16D-4E2C-8496-7B977FA158B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +84,17 @@ Global
 		{A568F603-A32C-4A4A-9CE6-24BF6F5A9678}.Release|Win32.Build.0 = Release|Win32
 		{A568F603-A32C-4A4A-9CE6-24BF6F5A9678}.Release|x64.ActiveCfg = Release|x64
 		{A568F603-A32C-4A4A-9CE6-24BF6F5A9678}.Release|x64.Build.0 = Release|x64
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Debug|Win32.Build.0 = Debug|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Debug|x64.ActiveCfg = Debug|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|Win32.ActiveCfg = Release|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|Win32.Build.0 = Release|Win32
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|x64.ActiveCfg = Release|x64
+		{E13D8F10-D16D-4E2C-8496-7B977FA158B0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
