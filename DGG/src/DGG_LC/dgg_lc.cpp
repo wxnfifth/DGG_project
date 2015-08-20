@@ -139,7 +139,10 @@ int main(int argc, char** argv)
     s_graph->read_svg_file_with_angle((string)svg_file_name);
     dynamic_cast<LC_HY<float>*>(s_graph)->setModel(rich_model);
     //s_graph->model_ptr = &rich_model;
-  } 
+  } else if(method == "dggdij") {
+    s_graph = new Dijstra_vector<float>();
+    s_graph->read_svg_file_with_angle((string)svg_file_name);    
+  }
   else{ 
      fprintf(stderr,"invalid choice\n"); 
     return 1;

@@ -40,6 +40,8 @@ if method == 'fan':
     error_file = os.path.join(dir_name,'%s_error_file_fan_cc%.0f.txt' % (model_name,input_const))
 elif method == 'lc':
     error_file = os.path.join(dir_name,'%s_error_file_lc_cc%.0f.txt' % (model_name,input_const))
+elif method == 'dggdij':
+    error_file = os.path.join(dir_name,'%s_error_file_dggdij_cc%.0f.txt' % (model_name,input_const))
 else:
     print 'method is fan or lc'
     quit()
@@ -70,7 +72,9 @@ for eps in eps_list:
         svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'lc':
         svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
-        
+    elif method == 'dggdij':
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s dij 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+	        
     print svg_lll_cmd_line
     os.system(svg_lll_cmd_line)
     print svg_log_filename
