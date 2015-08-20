@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ICH">
+      <UniqueIdentifier>{558b2ff7-b003-48a3-b5c3-239388dbb00b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DGG_LC">
+      <UniqueIdentifier>{090428a8-cc80-4cbb-bc70-1f128bbe072c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ICH\BaseModel.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\Geometry.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ICHWithFurtherPriorityQueue.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\ImprovedCHWithEdgeValve.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\Point3D.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\PreviousCH.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ICH\RichModel.cpp">
+      <Filter>ICH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DGG_LC\dgg_lc.cpp">
+      <Filter>DGG_LC</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\ICH\BaseModel.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ExactMethodForDGP.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\Geometry.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ICHWithFurtherPriorityQueue.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\ImprovedCHWithEdgeValve.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\Point3D.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\PreviousCH.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ICH\RichModel.h">
+      <Filter>ICH</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\svg_definition.h">
+      <Filter>DGG_LC</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
