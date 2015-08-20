@@ -121,6 +121,12 @@ void writeErrorFIle(vector<double>& error, const string& filename)
 	fclose(file);
 }
 
+void normalizeError(vector<double>& svg_error, double min_error, double max_error)
+{
+	for (auto& e : svg_error) {
+		e = (e - min_error) / (max_error - min_error);
+	}
+}
 
 
 void figure_1()
@@ -160,6 +166,13 @@ void figure_1()
 	writeErrorFIle(svg_error, "svg_error.txt");
 	computeStatics(svg_error);
 
+	double min_error = 0;
+	double max_error = 0.0001;
+	normalizeError(dgg_error, min_error, max_error);
+	writeErrorFIle(dgg_error, obj_prefix + "dgg_error.obj");
+
+	normalizeError(svg_error, min_error, max_error);
+	writeErrorFIle(svg_error, obj_prefix + "svg_error.obj");
 
 }
 
