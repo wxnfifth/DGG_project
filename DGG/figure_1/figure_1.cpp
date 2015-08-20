@@ -169,10 +169,10 @@ void figure_1()
 	double min_error = 0;
 	double max_error = 0.0001;
 	normalizeError(dgg_error, min_error, max_error);
-	writeErrorFIle(dgg_error, obj_prefix + "dgg_error.obj");
+	outputDistanceField(model,dgg_error, obj_prefix + "dgg_error.obj");
 
 	normalizeError(svg_error, min_error, max_error);
-	writeErrorFIle(svg_error, obj_prefix + "svg_error.obj");
+	outputDistanceField(model,svg_error, obj_prefix + "svg_error.obj");
 
 }
 
