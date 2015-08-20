@@ -528,6 +528,25 @@ void CBaseModel::Translate(const CPoint3D& t)
     }
 }
 
+void CBaseModel::FastSaveObjFile(const string& filename, const vector<pair<double, double>>& texture) const
+{
+	FILE* output_file = fopen(filename.c_str(), "w");
+	assert(output_file != NULL);
+	fprintf(output_file, "g %s\n", filename.c_str());
+	for (int i = 0; i < (int)GetNumOfVerts(); ++i){
+		fprintf(output_file, "v %lf %lf %lf\n", Vert(i).x, Vert(i).y, Vert(i).z);
+		fprintf(output_file, "vt %lf %lf\n", texture[i].first, texture[i].second);
+	}
+	for (int i = 0; i < (int)GetNumOfFaces(); ++i) {
+		fprintf(output_file, "f %d/%d %d/%d %d/%d\n",
+			Face(i)[0] + 1, Face(i)[0] + 1,
+			Face(i)[1] + 1, Face(i)[1] + 1,
+			Face(i)[2] + 1, Face(i)[2] + 1);
+	}
+	fclose(output_file);
+}
+
+
 void CBaseModel::FastSaveObjFile(const string& filename) const
 {
 

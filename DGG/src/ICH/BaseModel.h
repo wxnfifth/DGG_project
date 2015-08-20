@@ -42,7 +42,8 @@ protected:
 public:
 	void AdjustScaleAndComputeNormalsToVerts();
 	void ReadFile(const string& filename);
-    void FastSaveObjFile(const string& filename) const;
+	void CBaseModel::FastSaveObjFile(const string& filename, const vector<pair<double, double>>& texture) const;
+	void FastSaveObjFile(const string& filename) const;
     void FastSaveObjFileOfGivenFaces(const string& filename,const set<int>& faces) const;
     void CBaseModel::FastSaveObjFileWithNormal(const string& filename) const;
 	//virtual void Render(GLenum mode) const;
