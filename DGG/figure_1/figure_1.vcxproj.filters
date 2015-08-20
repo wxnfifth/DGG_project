@@ -16,9 +16,6 @@
     <Filter Include="ICH">
       <UniqueIdentifier>{558b2ff7-b003-48a3-b5c3-239388dbb00b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DGG_LC">
-      <UniqueIdentifier>{090428a8-cc80-4cbb-bc70-1f128bbe072c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ICH\BaseModel.cpp">
@@ -44,9 +41,6 @@
     </ClCompile>
     <ClCompile Include="..\src\ICH\RichModel.cpp">
       <Filter>ICH</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\DGG_LC\dgg_lc.cpp">
-      <Filter>DGG_LC</Filter>
     </ClCompile>
     <ClCompile Include="figure_1.cpp">
       <Filter>Source Files</Filter>
@@ -76,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="..\src\ICH\RichModel.h">
       <Filter>ICH</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\svg_definition.h">
-      <Filter>DGG_LC</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

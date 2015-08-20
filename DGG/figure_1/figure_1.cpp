@@ -15,7 +15,7 @@ void getICHDistance(const CRichModel& rich_model, int source_vert, vector<double
 	correct_dis.resize(rich_model.GetNumOfVerts());
 	for (int i = 0; i < rich_model.GetNumOfVerts(); ++i) {
 		double d = ich_algorithm.m_InfoAtVertices[i].disUptodate;
-		if (isfinite(d)) {
+		if (d==d) {
 			correct_dis[i] = d;
 		}
 		else{
@@ -153,7 +153,7 @@ void figure_1()
 int main()
 {
 
-
+  figure_1();
 
 
 

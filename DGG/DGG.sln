@@ -105,7 +105,8 @@ Global
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|Win32.ActiveCfg = Release|Win32
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|Win32.Build.0 = Release|Win32
-		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|x64.ActiveCfg = Release|Win32
+		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|x64.ActiveCfg = Release|x64
+		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
