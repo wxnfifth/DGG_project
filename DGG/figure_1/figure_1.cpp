@@ -109,8 +109,19 @@ void computeStatics(const vector<double>& error)
 	printf("min error is %lf\n" , min_error);
 	printf("max error is %lf\n", max_error);
 	printf("average error is %lf\n", average_error);
-
 }
+
+void writeErrorFIle(vector<double>& error, const string& filename)
+{
+	FILE* file = fopen(filename.c_str(), "w");
+	assert(file != NULL);
+	for (auto& e : error) {
+		fprintf(file, "%lf\n", e);
+	}
+	fclose(file);
+}
+
+
 
 void figure_1()
 {
@@ -140,11 +151,13 @@ void figure_1()
 	printf("dgg_statis:\n");
 	vector<double> dgg_error;
 	computeError(correct_dis, dgg_dis, dgg_error);
+	writeErrorFIle(dgg_error, "dgg_error.txt");
 	computeStatics(dgg_error);
 
 	printf("svg_statis:\n");
 	vector<double> svg_error;
 	computeError(correct_dis, svg_dis, svg_error);
+	writeErrorFIle(svg_error, "svg_error.txt");
 	computeStatics(svg_error);
 
 
