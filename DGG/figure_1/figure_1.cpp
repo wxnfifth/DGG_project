@@ -31,8 +31,9 @@ void getDGGDistance(const CRichModel& model, int source_vert, const string& dgg_
 	s_graph = new LC_HY<float>();
 	s_graph->read_svg_file_with_angle((string)dgg_filename);
 	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
+	ElapasedTime t;
 	s_graph->findShortestDistance(source_vert);
-	
+	t.printTime("dgg time"); 
 	dgg_dis.reserve(model.GetNumOfVerts());
 
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
@@ -51,10 +52,10 @@ void getSVGDistance(const CRichModel& model, int source_vert, const string& svg_
 	SparseGraph<float>* s_graph = NULL;
 	s_graph = new Dijstra_vector<float>();
 	s_graph->read_svg_file_binary((string)svg_filename);
+	ElapasedTime t;
 	s_graph->findShortestDistance(source_vert);
-
+	t.printTime("svg_time");
 	svg_dis.reserve(model.GetNumOfVerts());
-
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
 		double dis = s_graph->distanceToSource(i);
 		if (_finite(dis)) {
@@ -123,9 +124,15 @@ void writeErrorFIle(vector<double>& error, const string& filename)
 
 void normalizeError(vector<double>& svg_error, double min_error, double max_error)
 {
-	for (auto& e : svg_error) {
-		e = (e - min_error) / (max_error - min_error);
+//	for (auto& e : svg_error) {
+	for (int i = 0; i < svg_error.size(); ++i) {
+		svg_error[i] = (svg_error[i] - min_error) / (max_error - min_error);
+		//printf("'%lf %lf %lf'", svg_error[i], min_error, max_error);
+		if (svg_error[i] >= 1){
+			svg_error[i] = 1;
+		}
 	}
+	//printf("\n");
 }
 
 
@@ -173,7 +180,7 @@ void figure_1()
 
 	normalizeError(svg_error, min_error, max_error);
 	outputDistanceField(model,svg_error, obj_prefix + "svg_error.obj");
-
+	 
 }
 
 int main()
