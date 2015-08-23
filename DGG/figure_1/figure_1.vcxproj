@@ -134,6 +134,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\figure_1\DelaunayMesh.cpp" />
+    <ClCompile Include="..\src\figure_1\ExactGeodesic.cpp" />
+    <ClCompile Include="..\src\figure_1\Geometry.cpp" />
+    <ClCompile Include="..\src\figure_1\main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\figure_1\Mesh.cpp" />
+    <ClCompile Include="..\src\figure_1\PriorityQueue.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />
@@ -145,6 +153,12 @@
     <ClCompile Include="figure_1.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\figure_1\DelaunayMesh.h" />
+    <ClInclude Include="..\src\figure_1\ExactGeodesic.h" />
+    <ClInclude Include="..\src\figure_1\Geometry.h" />
+    <ClInclude Include="..\src\figure_1\Mesh.h" />
+    <ClInclude Include="..\src\figure_1\Model.h" />
+    <ClInclude Include="..\src\figure_1\PriorityQueue.h" />
     <ClInclude Include="..\src\ICH\BaseModel.h" />
     <ClInclude Include="..\src\ICH\ExactMethodForDGP.h" />
     <ClInclude Include="..\src\ICH\Geometry.h" />

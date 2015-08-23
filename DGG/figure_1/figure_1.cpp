@@ -2,6 +2,7 @@
 #include "ICH\ICHWithFurtherPriorityQueue.h"
 #include "wxn\wxn_dijstra.h"
 #include "wxn\wxnTime.h"
+//#include "figure_1\DelaunayMesh.h"
 
 void getICHDistance(const CRichModel& rich_model, int source_vert, vector<double>& correct_dis)
 {
@@ -88,7 +89,7 @@ void computeError(const vector<double>& correct_dis, const vector<double>& dis, 
 	assert(correct_dis.size() == dis.size());
 	error.resize(dis.size());
 	for (int i = 0; i < correct_dis.size(); ++i) {
-		if (fabs(correct_dis[i]) < 1e-7) {
+		if (fabs(correct_dis[i]) < 1e-7 || !isfinite(correct_dis[i]) || !isfinite((dis[i]))) {
 			error[i] = 0;
 		} else{
 			error[i] = fabs(correct_dis[i] - dis[i]) / correct_dis[i];
@@ -146,7 +147,11 @@ void figure_1()
 	CRichModel model(obj_file_name);
 	model.Preprocess();
 
-	int source_vert = 319073;
+	//int source_vert = 319073;
+	//int source_vert = 120733;
+	//int source_vert = 125931;
+	//int source_vert = 125002;
+	int source_vert = 32042;
 
 	vector<double> correct_dis;
 
@@ -183,11 +188,169 @@ void figure_1()
 	 
 }
 
+
+void getObjDistance(CRichModel& model, string& fmm_filename , vector<double>& fmm_dis)
+{
+	FILE* file = fopen(fmm_filename.c_str(), "r");
+	char buf[1024];
+	
+	while (fgets(buf, 1024, file) != NULL) {
+		if (buf[0] == 'v' && buf[1] == 't') {
+			double d;
+			sscanf(buf + 3, "%lf", &d);
+			fmm_dis.push_back(d);
+		}
+	}
+	//assert(fmm_dis.size() == model.GetNumOfVerts());
+	fclose(file);
+}
+
+void test_fast_marching()
+{
+	string obj_file_name = "gargoyle_nf700k.obj";
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+	int source_vert = 32042;
+	string fmm_filename = "gargoyle_nf700k_fmm_linear_dis.obj";
+	vector<double> correct_dis;
+
+	getICHDistance(model, source_vert, correct_dis);
+
+	vector<double> fmm_dis;
+	getObjDistance(model, fmm_filename, fmm_dis);
+
+	vector<double> fmm_error;
+	computeError(correct_dis, fmm_dis, fmm_error);
+	writeErrorFIle(fmm_error, "fmm_error.txt");
+	computeStatics(fmm_error);
+
+
+}
+
+void normalizeDis(vector<double>& dis)
+{
+	double max_dis = *max_element(dis.begin(), dis.end());
+	for (auto& d : dis){
+		d /= max_dis;
+	}
+}
+
+void test_heat()
+{
+	string obj_file_name = "gargoyle_nf700k.obj";
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+	int source_vert = 32042;
+	string heat_filename = "gargoyle_nf700k_heat_s32042_m5.00.obj";
+	vector<double> correct_dis;
+
+	getICHDistance(model, source_vert, correct_dis);
+	normalizeDis(correct_dis);
+
+	vector<double> heat_dis;
+	getObjDistance(model, heat_filename, heat_dis);
+	normalizeDis(heat_dis);
+
+	vector<double> heat_error;
+	computeError(correct_dis, heat_dis, heat_error);
+	writeErrorFIle(heat_error, "heat_error.txt");
+	computeStatics(heat_error);
+
+
+
+
+}
+
+void test_delaunay_mesh()
+{
+	string obj_file_name = "gargoyle_nf700k.obj";
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+	int source_vert = 32042;
+
+	string delaunay_obj_filename = "gargoyle_nf700k.delaunay5.obj";
+	CRichModel delaunay_model(delaunay_obj_filename);
+	delaunay_model.Preprocess();
+
+	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		auto& p0 = model.Vert(i);
+		auto& p1 = delaunay_model.Vert(i);
+		if ((p0 - p1).Len() > 1e-6) {
+			printf("i %d diff %lf\n", i , (p0 - p1).Len());
+		}
+	}
+
+	//int delaunay_source = 0;
+	//double min_dis =1e10;
+	//for (int i = 0; i < delaunay_model.GetNumOfVerts(); ++i) {
+	//	double dis = (delaunay_model.Vert(i) - model.Vert(source_vert)).Len();
+	//	if (min_dis > dis){
+	//		min_dis = dis;
+	//		delaunay_source = i;
+	//	}
+	//}
+	//printf("delaunay_source %d\n", delaunay_source);
+
+
+}
+
+void test_heat_delaunay()
+{
+	string obj_file_name = "gargoyle_nf700k.obj";
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+	int source_vert = 32042;
+
+	vector<double> correct_dis;
+
+	getICHDistance(model, source_vert, correct_dis);
+	normalizeDis(correct_dis);
+	//for (int i = 0; i < 100; ++i) {
+	//	printf("%lf ", correct_dis[i]);
+	//}
+
+	vector<string> heat_filenames = { "gargoyle_nf700k.delaunay2_heat_s32042_m3.00.obj",
+									  "gargoyle_nf700k.delaunay3_heat_s32042_m3.00.obj",
+									  "gargoyle_nf700k.delaunay4_heat_s32042_m3.00.obj" ,
+									  "gargoyle_nf700k_heat_s32042_m5.00.obj"};
+	vector<string> error_filenames = { "delaunay2_heat_error.txt",
+									  "delaunay3_heat_error.txt",
+							    	  "delaunay4_heat_error.txt",
+									  "heat_erro.txt"};
+	for (int type = 0; type < 4; ++type) 
+	{
+		//string heat_filename = "gargoyle_nf700k.delaunay4_heat_s32042_m3.00.obj";
+		string heat_filename = heat_filenames[type];
+		cout << heat_filename << "\n";
+		vector<double> heat_dis;
+		getObjDistance(model, heat_filename, heat_dis);
+		//for (int i = 0; i < 100; ++i) {
+		//	printf("%lf ", heat_dis[i]);
+		//}
+		//printf("\n");
+		normalizeDis(heat_dis);
+		heat_dis = vector<double>(heat_dis.begin(), heat_dis.begin() + model.GetNumOfVerts());
+
+		vector<double> heat_error;
+		computeError(correct_dis, heat_dis, heat_error);
+		writeErrorFIle(heat_error, error_filenames[type]);
+		computeStatics(heat_error);
+	}
+}
+
 int main()
 {
 
-  figure_1();
+  //figure_1();
+  
+	//test_fast_marching();
+	//test_heat();
 
-
-
+	//test_heat_delaunay();
+	test_heat_delaunay();
+	return 0;
 }
