@@ -4,9 +4,7 @@ import math
 
 def main():
     obj_name = sys.argv[1]
-
     num_eps = int(sys.argv[2])
-
     eps_list = []
     for i in range(3,3+num_eps):
         eps_list.append(float(sys.argv[i]))
@@ -24,7 +22,7 @@ def main():
 
     for eps in eps_list:
         precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
-        svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f p %d 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
+        svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f m %d 4  2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
         svg_binary_filename = os.path.join(dir_name,'%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant))
         if not os.path.isfile(svg_binary_filename):
             print svg_precompute_cmd_line
