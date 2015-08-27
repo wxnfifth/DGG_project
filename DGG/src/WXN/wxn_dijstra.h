@@ -29,6 +29,10 @@ public:
     node_number_ = -1;
   }
 
+  const std::vector<T>& graphNeighborDis(int v) {
+	  return graph_neighbor_dis[v];
+  }
+
 private:
 
   void initialize(int _node_number) {
@@ -54,7 +58,6 @@ private:
     //graph_neighbor_angle[u].reserve(number_of_neighbor);
     //graph_neighbor_begin_end_pos[u].reserve(number_of_neighbor);
   }
-
   void allocate_for_neighbor_with_angle(int u , int number_of_neighbor) {
     graph_neighbor[u].reserve(number_of_neighbor);
     graph_pos_in_neighbor[u].reserve(number_of_neighbor);
@@ -144,6 +147,59 @@ public:
     fprintf(stderr,"size v1 %dM\n" , sizeof(graph_neighbor));
     fprintf(stderr,"size graph_neighbor_dis %d M\n" , sizeof(graph_neighbor_dis));
     return 0;
+  }
+
+
+  int readDGGFileNotLoadAngle(const std::string& svg_file_name) {
+
+	  std::ifstream input_file(svg_file_name, std::ios::in | std::ios::binary);
+	  HeadOfSVG head_of_svg;
+	  input_file.read((char*)&head_of_svg, sizeof(head_of_svg));
+	  head_of_svg.print();
+	  initialize(head_of_svg.num_of_vertex);
+
+	  double average_neighbor_number(0.0);
+	  double max_radius_in_file(0.0);
+	  double average_radius(0.0);
+
+	  for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
+		  BodyHeadOfSVG body_head;
+		  input_file.read((char*)&body_head, sizeof(body_head));
+		  average_neighbor_number += (double)body_head.neighbor_num;
+		  std::vector<BodyPartOfSVGWithAngle> body_parts;
+		  for (int j = 0; j < body_head.neighbor_num; ++j){
+			  BodyPartOfSVGWithAngle body_part;
+			  input_file.read((char*)&body_part, sizeof(body_part));
+			  body_parts.push_back(body_part);
+		  }
+		  allocate_for_neighbor_small(body_head.source_index, body_parts.size());
+		  for (int j = 0; j < body_parts.size(); ++j) {
+			  for (int j = 0; j < body_parts.size(); ++j) {
+				  addedge(body_head.source_index,
+					  body_parts[j].dest_index,
+					  body_parts[j].dest_dis);
+			  }
+		  }
+		  if (i > 0 && i % (head_of_svg.num_of_vertex / 10) == 0){
+			  std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
+		  }
+	  }
+
+	  average_neighbor_number /= head_of_svg.num_of_vertex;
+	  fprintf(stderr, "average_neigh %lf\n", average_neighbor_number);
+	  std::cerr << "reading done..\n";
+	  input_file.close();
+
+	  for (int i = 0; i < graph_pos_in_neighbor.size(); ++i) {
+		  graph_pos_in_neighbor[i].resize(graph_neighbor[i].size());
+		  for (int j = 0; j < graph_neighbor[i].size(); ++j) {
+			  int neigh = graph_neighbor[i][j];
+			  int pos = graph_neighbor_map[neigh][i];
+			  graph_pos_in_neighbor[i][j] = pos;
+		  }
+	  }
+
+	  return 0;
   }
 
   int read_svg_file_with_angle(const std::string& svg_file_name) {

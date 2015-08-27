@@ -69,9 +69,62 @@ void figure_4()
 }
 
 
-int main()
+void dump_edge_lens(const string& model_name, const string& svg_filename, const string& dgg_filename)
 {
-  figure_4();
+	//string model_name = "bunny_nf10k.obj";
+	//string svg_filename = "bunny_nf10k_DGG0.001000_c12_pruning.binary";
+	CRichModel model(model_name);
+	model.Preprocess();
+	string prefix = model_name.substr(0, model_name.length() - 4);
+	{
+		SparseGraph<float>* s_graph = NULL;
+		s_graph = new Dijstra_vector<float>();
+		s_graph->read_svg_file_binary((string)svg_filename);
+
+		string svg_edge_filename = prefix + "_svg_edge_lens.txt";
+		FILE* svg_file = fopen(svg_edge_filename.c_str(), "w");
+		for (int i = 0; i < s_graph->NodeNum(); ++i) {
+			auto& neigh_dis = s_graph->graphNeighborDis(i);
+			for (auto& d : neigh_dis) {
+				fprintf(svg_file, "%lf\n", d);
+			}
+		}
+		fclose(svg_file);
+		delete s_graph;
+	}
+	{
+		SparseGraph<float>* s_graph = NULL;
+		s_graph = new LC_HY<float>();
+		s_graph->read_svg_file_with_angle((string)dgg_filename);
+		dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
+		string dgg_edge_filename = prefix + "_dgg_edge_lens.txt";
+		FILE* dgg_file = fopen(dgg_edge_filename.c_str(), "w");
+		for (int i = 0; i < s_graph->NodeNum(); ++i) {
+			auto& neigh_dis = s_graph->graphNeighborDis(i);
+			for (auto& d : neigh_dis) {
+				fprintf(dgg_file, "%lf\n", d);
+			}
+		}
+		fclose(dgg_file);
+		delete s_graph;
+	}
+
+
+
+
+
+}
+
+int main(int argc, char** argv)
+{
+	//figure_4();
+
+	if (argc < 3) {
+		printf("error input, example xx.exe xx.obj svg.binary dgg.binary");
+		exit(1);
+	}
+
+	dump_edge_lens(argv[1],argv[2],argv[3]);
 
 
   return 0;
