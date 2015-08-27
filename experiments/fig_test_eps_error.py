@@ -90,10 +90,13 @@ for eps in eps_list:
             elif lst[0] == 'total_average_running_time':
                 average_running_time = float(lst[1])
     if flag_preprocess:
+        average_neigh_before = 0
         with open(precompute_log_filename,'r') as f:
             for line in f:
                 lst = line.split()
                 #print lst
+                if len(lst) == 0:
+                    continue
                 if lst[0] == 'Average_degree_before':
                     average_neigh_before = float(lst[1])       
         with open(error_file,'a') as f:
