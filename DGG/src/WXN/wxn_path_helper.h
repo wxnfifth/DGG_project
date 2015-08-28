@@ -2,6 +2,8 @@
 #define _WXN_PATH_HELPER_H_
 #include "ICH\RichModel.h"
 #include "ICH\ICHWithFurtherPriorityQueue.h"
+#include "MMP\geodesic_algorithm_vg_mmp.h"
+
 
 void cylinder(CPoint3D start_p, CPoint3D end_p);
 
@@ -44,7 +46,32 @@ public:
 		}
   }
 
-	void addGeodesicPath(CRichModel& model, int v0, int v1)
+	//void addGeodesicPath(CRichModel& model, geodesic::SurfacePoint& p0, geodesic::SurfacePoint& p1)
+	//{
+	//	//vector<int> sources;
+	//	//sources.push_back(v0);
+	//	//CICHWithFurtherPriorityQueue ich_algoritm(model, sources);
+	//	//ich_algoritm.Execute();
+
+	//	//vector<CPoint3D> path_points;
+	//	//vector<IntersectionWithPath> paths;
+	//	//ich_algoritm.FindSourceVertex(v1, paths);
+	//	//for (auto& v : paths) {
+	//	//	path_points.push_back(v.GetPosition(model));
+	//	//}
+
+
+
+
+
+	//	//CylinderPath cylinder_path(0.002);
+	//	for (int i = 0; i < path_points.size() - 1; ++i) {
+	//		addLine(path_points[i], path_points[i + 1]);
+	//	}
+	//}
+
+
+   void addGeodesicPath(CRichModel& model, int v0, int v1)
   {
     vector<int> sources;
     sources.push_back(v0);

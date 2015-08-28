@@ -31,7 +31,10 @@ public:
 	~GeodesicAlgorithmMMPBasement(){};
 
 	void trace_back(SurfacePoint& destination, std::vector<SurfacePoint>& path);
-
+	void trace_back_find_edge(SurfacePoint& destination,
+						      std::vector<SurfacePoint>& path,
+							  int edge_v0, int edge_v1,
+							  interval_pointer& result_interval);
 	unsigned best_source(SurfacePoint& point, double& best_source_distance);
 	unsigned best_source_with_angle(SurfacePoint& point, double& best_source_distance, double& angle);
 
@@ -761,6 +764,82 @@ inline void GeodesicAlgorithmMMPBasement::trace_back(SurfacePoint& destination,	
 		path.push_back(source);
 	}
 }
+
+inline void GeodesicAlgorithmMMPBasement::trace_back_find_edge(SurfacePoint& destination,		//trace back piecewise-linear path
+	std::vector<SurfacePoint>& path, int edge_v0, int edge_v1, interval_pointer& result_interval)
+{
+	path.clear();
+	double best_total_distance;
+	double best_interval_position;
+	unsigned source_index = std::numeric_limits<unsigned>::max();
+	interval_pointer best_interval = best_first_interval(destination,
+		best_total_distance,
+		best_interval_position,
+		source_index);
+
+	if (best_total_distance >= GEODESIC_INF / 2.0)		//unable to find the right path
+	{
+		return;
+	}
+
+	path.push_back(destination);
+
+	if (best_interval)	//if we did not hit the face source immediately  
+	{
+		std::vector<edge_pointer> possible_edges;
+		possible_edges.reserve(10);
+
+		while (visible_from_source(path.back()) < 0)		//while this point is not in the direct visibility of some source (if we are inside the FACE, we obviously hit the source)
+		{
+			SurfacePoint& q = path.back();
+
+			possible_traceback_edges(q, possible_edges);
+
+			interval_pointer interval;
+			double total_distance;
+			double position;
+
+			best_point_on_the_edge_set(q,
+				possible_edges,
+				interval,
+				total_distance,
+				position);
+
+			assert(total_distance<GEODESIC_INF);
+			source_index = interval->source_index();
+
+			edge_pointer e = interval->edge();
+			double local_epsilon = SMALLEST_INTERVAL_RATIO*e->length();
+			
+			if ( e->v0()->id() == edge_v0 && e->v1()->id() == edge_v1) {
+				printf("found edge!  ");
+				result_interval = interval;
+			}
+			printf("e( %d ,%d )\n", e->v0()->id(), e->v1()->id());
+
+			if (position < local_epsilon)
+			{
+				path.push_back(SurfacePoint(e->v0()));
+			}
+			else if (position > e->length() - local_epsilon)
+			{
+				path.push_back(SurfacePoint(e->v1()));
+			}
+			else
+			{
+				double normalized_position = position / e->length();
+				path.push_back(SurfacePoint(e, normalized_position));
+			}
+		}
+	}
+
+	SurfacePoint& source = static_cast<SurfacePoint&>(m_sources[source_index]);
+	if (path.back().distance(&source) > 0)
+	{
+		path.push_back(source);
+	}
+}
+
 
 inline interval_pointer GeodesicAlgorithmMMPBasement::best_first_interval(SurfacePoint& point, 
 	double& best_total_distance, 

@@ -100,7 +100,6 @@ inline void GeodesicAlgorithmVGMMP::initialize_propagation_data()
 	}
 }
 
-
 inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sources,
                                                  double eps_vg, std::map<int,double>& dest_verts,
                                                  double max_propagation_distance,			//propagation algorithm stops after reaching the certain distance from the source
@@ -731,8 +730,6 @@ inline void GeodesicAlgorithmVGMMP::propagate_dgg(std::vector<SurfacePoint>& sou
 
 }
 
-
-
 inline void GeodesicAlgorithmVGMMP::propagate_local(std::vector<SurfacePoint>& sources,
                                                     int fixed_k, std::map<int,double>& dest_verts,
                                                     double max_propagation_distance ,		
@@ -902,7 +899,6 @@ inline void GeodesicAlgorithmVGMMP::propagate_local(std::vector<SurfacePoint>& s
 
 
 }
-
 
 inline void GeodesicAlgorithmVGMMP::propagate(std::vector<SurfacePoint>& sources,
    									   double max_propagation_distance,			//propagation algorithm stops after reaching the certain distance from the source

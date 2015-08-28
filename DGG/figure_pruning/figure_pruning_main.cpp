@@ -109,8 +109,7 @@ void figure5()
 
 }
 
-int findDest(CRichModel& model, string& input_obj_name, int source,
-		     double eps_vg, int edge_v0, int edge_v1, CPoint3D& edge_p0, CPoint3D& edge_p1)
+int findDest(CRichModel& model, string& input_obj_name, int source, double eps_vg)
 {
 	std::vector<double> points;
 	std::vector<unsigned> faces;
@@ -154,45 +153,47 @@ int findDest(CRichModel& model, string& input_obj_name, int source,
 	map<int, double> fixedDests;
 	algorithm->propagate_vg(sources, eps_vg, fixedDests);
 
-	int dest = fixedDests.rbegin()->first;
-
-	std::vector<geodesic::SurfacePoint> trace_path;
-	geodesic::interval_pointer result_interval;
-	algorithm->trace_back_find_edge(geodesic::SurfacePoint(&mesh.vertices()[dest]),
-									trace_path, edge_v0, edge_v1, result_interval);
-	//result_interval->start();
-
-	auto& e_ptr = result_interval->edge();
-	CPoint3D v0(e_ptr->v0()->xyz());
-	CPoint3D v1(e_ptr->v1()->xyz());
-	double x0 = result_interval->start() / e_ptr->length();
-	edge_p0 = (1 - x0)*v0 + x0 * v1;
-	double x1 = result_interval->stop() / e_ptr->length();
-	edge_p1 = (1 - x1)*v0 + x1 * v1;
-	//interval_points.push_back(make_pair(p0, p1));
-
-	return dest;
+	return fixedDests.rbegin()->first;
 
 }
 
-void writeEdges(CRichModel& model, int source, int dest, double eps_vg, double cylinder_radius, const string& edge_filename)
+void figure_pruning_bunny()
 {
-	map<int, double> fixedDests;
-	getDests(model.GetFullPathAndFileName(), model, source, eps_vg, fixedDests);
-	CylinderPath cylinder1(cylinder_radius);
-	vector<int> dests;
-	for (auto& d : fixedDests) {
-		if (d.first != dest) {
-			dests.push_back(d.first);
+	string input_obj_name = "bunny_nf10k.obj";
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+	int source = 4183;
+	double eps_vg = 0.001;
+	double cylinder_radius = 0.0004;
+	int dest;
+	dest = findDest(model, input_obj_name, source, eps_vg);
+
+	{
+		map<int, double> fixedDests;
+		CRichModel model(input_obj_name);
+		model.Preprocess();
+		getDests(input_obj_name, model, source, eps_vg, fixedDests);
+		CylinderPath cylinder1(cylinder_radius);
+		vector<int> dests;
+		for (auto& d : fixedDests) {
+			if (d.first != dest) {
+				dests.push_back(d.first);
+			}
 		}
+		cylinder1.addGeodesicPaths(model, source, dests);
+		cylinder1.write_to_file("bunny_dgg_edges.obj");
 	}
-	cylinder1.addGeodesicPaths(model, source, dests);
-	cylinder1.write_to_file(edge_filename);
-}
 
-int getMidVert(CICHWithFurtherPriorityQueue& algo_source, CICHWithFurtherPriorityQueue& algo_dest,
-			   CRichModel& model, int source, int dest)
-{
+	vector<int> sources;
+	sources.push_back(source);
+	CICHWithFurtherPriorityQueue algo_source(model, sources);
+	algo_source.Execute();
+
+	vector<int> dests;
+	dests.push_back(dest);
+	CICHWithFurtherPriorityQueue algo_dest(model, dests);
+	algo_dest.Execute();
+
 	double dis_exact = algo_source.m_InfoAtVertices[dest].disUptodate;
 	set<int> path_verts;
 	vector<IntersectionWithPath> result_path;
@@ -220,66 +221,29 @@ int getMidVert(CICHWithFurtherPriorityQueue& algo_source, CICHWithFurtherPriorit
 	for (int i = 0; i < 20; ++i) {
 		printf("vert(i %d) error %lf \n", vert_error[i].first, vert_error[i].second);
 	}
-	int mid_vert_pos = 5;
-	auto& mid_error = vert_error[mid_vert_pos];
+	int mid_vert_pos = 3;
+	auto mid_error = vert_error[mid_vert_pos];
 	int mid_vert = mid_error.first;
 	printf("choose vert(i %d) error %lf \n", mid_error.first, mid_error.second);
-	return mid_vert;
-}
 
-void figure_5_bunny()
-{
-		string input_obj_name = "bunny_nf10k.obj";
-		CRichModel model(input_obj_name);
-		model.Preprocess();
-		int source = 4183;
-		double eps_vg = 0.001;
-		double cylinder_radius = 0.0004;
-		int dest;
-		//get window pass edge (1393,1394)
-		int edge_v0 = 1393;
-		int edge_v1 = 1394;
-		CPoint3D edge_p0;
-		CPoint3D edge_p1;
-		dest = findDest(model, input_obj_name, source, eps_vg, edge_v0, edge_v1,edge_p0,edge_p1);
-		printBallToObj(vector < CPoint3D > {edge_p0,edge_p1}, 
-					   "bunny_interval_points.obj", cylinder_radius * 2);
+	CylinderPath cylinder_path(cylinder_radius * 2);
+	cylinder_path.addGeodesicPath(model, source, dest);
+	cylinder_path.write_to_file("bunny_path_staight.obj");
+	CylinderPath cylinder_path_eps(cylinder_radius * 2);
+	cylinder_path_eps.addGeodesicPath(model, source, mid_vert);
+	cylinder_path_eps.addGeodesicPath(model, mid_vert, dest);
+	cylinder_path_eps.write_to_file("bunny_path_eps.obj");
 
-
-		string edge_filename("bunny_dgg_edges.obj");
-		writeEdges(model,source, dest, eps_vg, cylinder_radius, edge_filename);
-
-		vector<int> sources;
-		sources.push_back(source);
-		CICHWithFurtherPriorityQueue algo_source(model, sources);
-		algo_source.Execute();
-
-		vector<int> dests{ dest };
-		CICHWithFurtherPriorityQueue algo_dest(model, dests);
-		algo_dest.Execute();
-
-		int mid_vert = getMidVert(algo_source, algo_dest, model, source, dest);
-
-		CylinderPath cylinder_path(cylinder_radius * 2);
-		cylinder_path.addGeodesicPath(model, source, dest);
-		cylinder_path.write_to_file("bunny_path_staight.obj");
-		CylinderPath cylinder_path_eps(cylinder_radius * 2);
-		cylinder_path_eps.addGeodesicPath(model, source, mid_vert);
-		cylinder_path_eps.addGeodesicPath(model, mid_vert, dest);
-		cylinder_path_eps.write_to_file("bunny_path_eps.obj");
-
-		vector<CPoint3D> points{ model.Vert(source), model.Vert(dest) };
-		printBallToObj(points, "bunny_source_dest_points.obj", cylinder_radius * 10);
-		printBallToObj(vector < CPoint3D > {model.Vert(mid_vert)}, "bunny_mid_points.obj", cylinder_radius * 5);
+	vector<CPoint3D> points{ model.Vert(source), model.Vert(dest) };
+	printBallToObj(points, "bunny_source_dest_points.obj", cylinder_radius * 10);
+	printBallToObj(vector < CPoint3D > {model.Vert(mid_vert)}, "bunny_mid_points.obj", cylinder_radius * 5);
 
 }
-
-
 
 
 int main()
 {
-	figure_5_bunny();
+	figure_pruning_bunny();
 
 
 	return 0;

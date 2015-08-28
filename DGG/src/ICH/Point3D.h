@@ -17,6 +17,7 @@ public:
 	static const CPoint3D MAX_VALUE;
 	double x, y, z;
 	CPoint3D();
+	CPoint3D(double* xyz);
 	CPoint3D(double x, double y, double z);	
 	inline CPoint3D& operator +=(const CPoint3D& pt);
 	inline CPoint3D& operator -=(const CPoint3D& pt);

@@ -290,7 +290,7 @@ void printBallToObj(const vector<CPoint3D>& vertex_list, const string& file_name
 		CBaseModel temp_model(sphere_model);
 		temp_model.Scale(scale);
 		temp_model.Translate(vertex_list[i]);
-		fprintf(ball_file, "g ball_%d\n", i % 2);
+		fprintf(ball_file, "g ball_%d\n", i );
 		for (int vert_id = 0; vert_id < temp_model.GetNumOfVerts(); ++vert_id) {
 			fprintf(ball_file, "v %lf %lf %lf\n", temp_model.Vert(vert_id).x, temp_model.Vert(vert_id).y, temp_model.Vert(vert_id).z);
 		}

@@ -16,8 +16,19 @@ CPoint3D::CPoint3D()
 {
 }
 
+
+CPoint3D::CPoint3D(double* xyz)
+{
+	assert(xyz != NULL);
+	x = xyz[0];
+	y = xyz[1];
+	z = xyz[2];
+}
+
+
 CPoint3D::CPoint3D(double x, double y, double z) : x(x), y(y), z(z)
 {
+
 }
 
 CPoint3D operator +(const CPoint3D& pt1, const CPoint3D& pt2)

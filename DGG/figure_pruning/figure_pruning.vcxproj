@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}</ProjectGuid>
-    <RootNamespace>figure_1</RootNamespace>
+    <ProjectGuid>{1D9D5D10-FEB3-4185-8473-73B95830DBAC}</ProjectGuid>
+    <RootNamespace>figure5</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -45,9 +45,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -65,11 +65,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\src;$(IncludePath)</IncludePath>
     <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\src;$(IncludePath)</IncludePath>
     <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -100,18 +100,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\x64\Release\figure_1.exe ..\..\bin\figure_1.exe
-</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -126,22 +120,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glut64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\x64\Release\figure_1.exe ..\..\bin\figure_1.exe
-</Command>
+      <Command>copy ..\x64\Release\figure_pruning.exe ..\..\bin\figure_pruning.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\figure_1\DelaunayMesh.cpp" />
-    <ClCompile Include="..\src\figure_1\ExactGeodesic.cpp" />
-    <ClCompile Include="..\src\figure_1\Geometry.cpp" />
-    <ClCompile Include="..\src\figure_1\main.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\figure_1\Mesh.cpp" />
-    <ClCompile Include="..\src\figure_1\PriorityQueue.cpp" />
+    <ClCompile Include="..\src\DGG_precompute\svg_precompute.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />
@@ -150,15 +136,16 @@
     <ClCompile Include="..\src\ICH\Point3D.cpp" />
     <ClCompile Include="..\src\ICH\PreviousCH.cpp" />
     <ClCompile Include="..\src\ICH\RichModel.cpp" />
-    <ClCompile Include="figure_1.cpp" />
+    <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp" />
+    <ClCompile Include="..\src\WXN\wxnMath.cpp" />
+    <ClCompile Include="..\src\WXN\wxn_geometry.cpp" />
+    <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
+    <ClCompile Include="figure_pruning_main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\figure_1\DelaunayMesh.h" />
-    <ClInclude Include="..\src\figure_1\ExactGeodesic.h" />
-    <ClInclude Include="..\src\figure_1\Geometry.h" />
-    <ClInclude Include="..\src\figure_1\Mesh.h" />
-    <ClInclude Include="..\src\figure_1\Model.h" />
-    <ClInclude Include="..\src\figure_1\PriorityQueue.h" />
+    <ClInclude Include="..\src\DGG_precompute\svg_precompute.h" />
+    <ClInclude Include="..\src\DGG_precompute\tmp_stdafx.h" />
+    <ClInclude Include="..\src\DGG_precompute\wxnTime.h" />
     <ClInclude Include="..\src\ICH\BaseModel.h" />
     <ClInclude Include="..\src\ICH\ExactMethodForDGP.h" />
     <ClInclude Include="..\src\ICH\Geometry.h" />
@@ -167,6 +154,23 @@
     <ClInclude Include="..\src\ICH\Point3D.h" />
     <ClInclude Include="..\src\ICH\PreviousCH.h" />
     <ClInclude Include="..\src\ICH\RichModel.h" />
+    <ClInclude Include="..\src\JIAJUN\dgg_pruning.h" />
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_base.h" />
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_basement.h" />
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_elements.h" />
+    <ClInclude Include="..\src\MMP\geodesic_algorithm_vg_mmp.h" />
+    <ClInclude Include="..\src\MMP\geodesic_constants_and_simple_functions.h" />
+    <ClInclude Include="..\src\MMP\geodesic_memory.h" />
+    <ClInclude Include="..\src\MMP\geodesic_mesh.h" />
+    <ClInclude Include="..\src\MMP\geodesic_mesh_elements.h" />
+    <ClInclude Include="..\src\MMP\LinearQueue.h" />
+    <ClInclude Include="..\src\MMP\ListGroup.h" />
+    <ClInclude Include="..\src\MMP\MyList.h" />
+    <ClInclude Include="..\src\WXN\wxnMath.h" />
+    <ClInclude Include="..\src\WXN\wxnTime.h" />
+    <ClInclude Include="..\src\WXN\wxn_dijstra.h" />
+    <ClInclude Include="..\src\WXN\wxn_geometry.h" />
+    <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
