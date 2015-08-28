@@ -105,6 +105,8 @@ def find_k_error(dir_name, model_name, obj_path, k,error_file):
     with open(svg_log_filename,'r') as f:
         for line in f:
             lst = line.split()
+            if len(lst) == 0:
+                continue
             if lst[0] == 'total_average_error':
                 average_error = float(lst[1])
             elif lst[0] == 'average_neigh':
