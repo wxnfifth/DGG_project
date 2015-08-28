@@ -4,6 +4,7 @@
 #include "geodesic_mesh.h"
 #include "geodesic_constants_and_simple_functions.h"
 #include "geodesic_algorithm_mmp_elements.h"
+#include "ICH\RichModel.h"
 #include <iostream>
 #include <ctime>
 

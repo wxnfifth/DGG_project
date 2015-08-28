@@ -12,7 +12,7 @@
 #include<iostream>
 #include<string>
 #include<sstream>
-#include "wxnTime.h"
+#include "WXN\wxnTime.h"
 #include "svg_definition.h"
 using namespace std;
 
