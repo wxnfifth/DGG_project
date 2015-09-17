@@ -53,6 +53,15 @@ public:
 	double min_theta() {return theta_min;}
 	double max_h() {return h_max;}
 	double min_h() {return h_min;}
+	edge_pointer get_edge(int v0, int v1) {
+		for (auto& e : vertices()[v0].adjacent_edges()) {
+			//int v1 = e->v1()->id();
+			if (e->v1()->id() == v1) {
+				return e;
+			}
+		}
+		return NULL;
+	}
 
 private:
 

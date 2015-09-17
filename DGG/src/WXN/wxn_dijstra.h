@@ -29,6 +29,9 @@ public:
     node_number_ = -1;
   }
 
+  const std::vector<int>& graphNeighbor(int v) {
+	  return graph_neighbor[v];
+  }
   const std::vector<T>& graphNeighborDis(int v) {
 	  return graph_neighbor_dis[v];
   }

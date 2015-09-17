@@ -217,7 +217,7 @@ inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sour
 
       double tmp_d_max = GEODESIC_INF;
       if (min_interval->min() - tmp_e > 0) {
-        tmp_d_max = tmp_e * tmp_e / (2.0 * eps_vg * (min_interval->min() - tmp_e)) +tmp_e;
+        tmp_d_max = tmp_e * tmp_e / (2.0 * eps_vg * (min_interval->min() - tmp_e)) + tmp_e;
       }
       d_max_current = min(d_max_current, tmp_d_max); 
       // f fprintf(stderr,stderr,"e %lf d_max %lf current %lf\n" , tmp_e, tmp_d_max, min_interval->min());

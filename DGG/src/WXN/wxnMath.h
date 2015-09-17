@@ -7,7 +7,7 @@
 #include "ich\BaseModel.h"
 #include "ich\RichModel.h"
 #include "wxn_geometry.h"
-
+#include "wxn_triangle.h"
 
 //color reference http://www.tayloredmktg.com/rgb/
 const CPoint3D color_black(0,0,0);
@@ -446,29 +446,29 @@ public:
 	const CRichModel& model_;
 	//vector<vector<CPoint3D>> 
 public:
-	ModelForSubdivide(const CRichModel& model,vector<int>&_origin_of_new_face):model_(model),origin_of_new_face(_origin_of_new_face){
-		vertex_list_.assign(model.m_Verts.begin(),model.m_Verts.end());
-		face_list_.assign(model.m_Faces.begin(),model.m_Faces.end());
+	ModelForSubdivide(const CRichModel& model, vector<int>&_origin_of_new_face) :model_(model), origin_of_new_face(_origin_of_new_face){
+		vertex_list_.assign(model.m_Verts.begin(), model.m_Verts.end());
+		face_list_.assign(model.m_Faces.begin(), model.m_Faces.end());
 		vertex_on_simple_edge.resize(model_.GetNumOfTotalUndirectedEdges());
-		vertex_in_face.resize( model_.GetNumOfFaces());
+		vertex_in_face.resize(model_.GetNumOfFaces());
 	}
 
-	void addVertex(const CPoint3D& vertex,const int& face_index,int& source_index,int on_edge_id=-1){
-		if(face_index >= 0 ){
+	void addVertex(const CPoint3D& vertex, const int& face_index, int& source_index, int on_edge_id = -1){
+		if (face_index >= 0){
 			int v_index[3];
 			int simple_edge_index[3];
 			CPoint3D v_3D[3];
-			for(int j = 0; j < 3; ++j){
+			for (int j = 0; j < 3; ++j){
 				v_index[j] = face_list_[face_index][j];
 				v_3D[j] = model_.Vert(v_index[j]);
-				simple_edge_index[j] = model_.GetEdgeFromFace(face_index,j).indexOfSimpleEdge;
+				simple_edge_index[j] = model_.GetEdgeFromFace(face_index, j).indexOfSimpleEdge;
 			}
-			if(on_edge_id == -1){
+			if (on_edge_id == -1){
 				double barycentric_coordinate[3];
-				calculateBarycentric(v_3D,vertex,barycentric_coordinate);
-				for(int i = 0; i < 3; ++i){
-					if(barycentric_coordinate[i] < 1e-4 ){
-						on_edge_id = (i+1)%3;
+				calculateBarycentric(v_3D, vertex, barycentric_coordinate);
+				for (int i = 0; i < 3; ++i){
+					if (barycentric_coordinate[i] < 1e-6){
+						on_edge_id = (i + 1) % 3;
 						break;
 					}
 				}
@@ -476,55 +476,242 @@ public:
 			int vertex_index = vertex_list_.size();
 			source_index = vertex_index;
 			vertex_list_.push_back(vertex);
-			if(on_edge_id == -1 ){
+			if (on_edge_id == -1){
 				vertex_in_face[face_index].push_back(vertex_index);
-			}else {
+			}
+			else {
 				vector<int>& vertex_on_edge_id = vertex_on_simple_edge[simple_edge_index[on_edge_id]];
-				vector<pair<int,double>> vertex_on_a_simple_edge;
-				vertex_on_a_simple_edge.push_back(pair<int,double>( vertex_index,
-																  ( model_.Vert(model_.SimpleEdge(simple_edge_index[on_edge_id]).v1) - 
-																    vertex ).Len() )   );
+				vector<pair<int, double>> vertex_on_a_simple_edge;
+				vertex_on_a_simple_edge.push_back(pair<int, double>(vertex_index,
+					(model_.Vert(model_.SimpleEdge(simple_edge_index[on_edge_id]).v1) -
+					vertex).Len()));
 				bool need_to_insert = true;
-				for(int i = 0; i < vertex_on_edge_id.size();++i){
-					pair<int,double> temp_vertex;//first is index ,second is distance to v1 on simple edge
+				for (int i = 0; i < vertex_on_edge_id.size(); ++i){
+					pair<int, double> temp_vertex;//first is index ,second is distance to v1 on simple edge
 					temp_vertex.first = vertex_on_edge_id[i];
 					temp_vertex.second = (model_.Vert(model_.SimpleEdge(simple_edge_index[on_edge_id]).v1) -
-										  vertex_list_[temp_vertex.first]).Len();
-					if( (temp_vertex.second -  vertex_on_a_simple_edge[0].second ) /  model_.GetEdgeFromFace(face_index,on_edge_id).length < 1e-3 ){
+						vertex_list_[temp_vertex.first]).Len();
+					if ((temp_vertex.second - vertex_on_a_simple_edge[0].second) / model_.GetEdgeFromFace(face_index, on_edge_id).length < 1e-3){
 						need_to_insert = false;
 						break;
 					}
 					vertex_on_a_simple_edge.push_back(temp_vertex);
 				}
-				if(need_to_insert){
-					sort(vertex_on_a_simple_edge.begin(),vertex_on_a_simple_edge.end(),compare_pair_second<std::less>());
+				if (need_to_insert){
+					sort(vertex_on_a_simple_edge.begin(), vertex_on_a_simple_edge.end(), compare_pair_second<std::less>());
 					vertex_on_edge_id.clear();
-					for(int i = 0; i < vertex_on_a_simple_edge.size();++i){
+					for (int i = 0; i < vertex_on_a_simple_edge.size(); ++i){
 						vertex_on_edge_id.push_back(vertex_on_a_simple_edge[i].first);
 					}
-				}else{
+				}
+				else{
 					vertex_list_.pop_back();
 
 				}
 			}
 		}
 	}
-	void WriteToFile(const string& file_name ){
+	void subdivide(){
+		double cnt = 0;
+		if (false){
+			for (int face_index = 0; face_index < model_.GetNumOfFaces(); ++face_index){
+
+				int v_index[3];
+				int simple_edge_index[3];
+				CPoint3D v_3D[3];
+				for (int j = 0; j < 3; ++j){
+					v_index[j] = face_list_[face_index][j];
+					v_3D[j] = model_.Vert(v_index[j]);
+					simple_edge_index[j] = model_.GetEdgeFromFace(face_index, j).indexOfSimpleEdge;
+				}
+				if (vertex_in_face[face_index].empty() &&
+					vertex_on_simple_edge[simple_edge_index[0]].empty() &&
+					vertex_on_simple_edge[simple_edge_index[1]].empty() &&
+					vertex_on_simple_edge[simple_edge_index[2]].empty()){
+					continue;
+				}
+				cnt++;
+
+				Point2D v_2D[3];
+				vector<Point2D> input_point_list_2D;
+				//int triangle_vertex_position_in_point_list[3];
+				map3DTriangleTo2D(v_3D, v_2D);
+				for (int j = 0; j < 3; ++j){
+					//triangle_vertex_position_in_point_list[j] = input_point_list_2D.size();
+					input_point_list_2D.push_back(v_2D[j]);
+					if (model_.SimpleEdge(simple_edge_index[j]).v1 == v_index[j]){
+						for (int k = 0; k < vertex_on_simple_edge[simple_edge_index[j]].size(); ++k){
+							CPoint3D& temp_vertex_3d = vertex_list_[vertex_on_simple_edge[simple_edge_index[j]][k]];
+							Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+							input_point_list_2D.push_back(temp_vertex_2d);
+						}
+					}
+					else {
+						for (int k = vertex_on_simple_edge[simple_edge_index[j]].size() - 1; k >= 0; --k){
+							CPoint3D& temp_vertex_3d = vertex_list_[vertex_on_simple_edge[simple_edge_index[j]][k]];
+							Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+							input_point_list_2D.push_back(temp_vertex_2d);
+						}
+					}
+				}
+				vector<vector<int>> input_segment_list;
+				//vector<int>input_segment_marker_list;
+				//int marker = 0;
+				for (int j = 0; j < input_point_list_2D.size(); ++j){
+					vector<int> segment(2);
+					segment[0] = j;
+					segment[1] = (j + 1) % input_point_list_2D.size();
+					input_segment_list.push_back(segment);
+					//if( marker <= 2 && j == triangle_vertex_position_in_point_list[marker] ){
+					//	marker++;
+					//	input_segment_marker_list.push_back( -marker );
+					//}else{
+					//	input_segment_marker_list.push_back( -marker );
+					//}
+				}
+				for (int j = 0; j < vertex_in_face[face_index].size(); ++j){
+					CPoint3D& temp_vertex_3d = vertex_list_[vertex_in_face[face_index][j]];
+					Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+					input_point_list_2D.push_back(temp_vertex_2d);
+				}
+				vector<Point2D> output_point_list;
+				vector<CBaseModel::CFace> triangle_list;
+				vector<vector<int>> output_segment_list;
+				//vector<int> output_point_marker_list;
+				//triangulateSegLoop(input_point_list_2D,input_segment_list,output_point_list,triangle_list,output_segment_list,"pq10S5zQ");
+				triangulateSegLoop(input_point_list_2D, input_segment_list, output_point_list, triangle_list, output_segment_list, "pzQ");
+
+				//triangulateSegLoop(input_point_list_2D,input_segment_list,input_segment_marker_list,
+				//					output_point_list,triangle_list,output_segment_list,output_point_marker_list);
+
+				// -1 -2 -3 for marker
+				for (int j = input_point_list_2D.size(); j < output_point_list.size(); ++j){
+					//void addVertex(const CPoint3D& vertex,const int& face_index,int& source_index,int on_edge_id=-1)
+					CPoint3D vertex = pointIn2DTriangleTo3D(v_3D, v_2D, output_point_list[j]);
+					int source_index;
+					//if( output_point_marker_list[j] < 0 ){c
+					//	addVertex(vertex,face_index,source_index, ( -output_point_marker_list[j]) -1 );
+					//}else{
+					//	addVertex(vertex,face_index,source_index );
+					//}
+					addVertex(vertex, face_index, source_index);
+				}
+			}
+		}
+
+		printf("_______________cnt %d proption %lf \n", cnt, (double)cnt / (double)model_.GetNumOfFaces());
+
+		for (int face_index = 0; face_index < model_.GetNumOfFaces(); ++face_index){
+			int v_index[3];
+			int simple_edge_index[3];
+			CPoint3D v_3D[3];
+			for (int j = 0; j < 3; ++j){
+				v_index[j] = face_list_[face_index][j];
+				v_3D[j] = model_.Vert(v_index[j]);
+				simple_edge_index[j] = model_.GetEdgeFromFace(face_index, j).indexOfSimpleEdge;
+			}
+			if (vertex_in_face[face_index].empty() &&
+				vertex_on_simple_edge[simple_edge_index[0]].empty() &&
+				vertex_on_simple_edge[simple_edge_index[1]].empty() &&
+				vertex_on_simple_edge[simple_edge_index[2]].empty()){
+				continue;
+			}
+			if (vertex_on_simple_edge[simple_edge_index[0]].empty() &&
+				vertex_on_simple_edge[simple_edge_index[1]].empty() &&
+				vertex_on_simple_edge[simple_edge_index[2]].empty() &&
+				vertex_in_face[face_index].size() == 1
+				){
+				vector<int> input_point_index;
+				vector<CBaseModel::CFace> triangle_list;
+				for (int j = 0; j < 3; ++j){
+					input_point_index.push_back(v_index[j]);
+				}
+				input_point_index.push_back(vertex_in_face[face_index][0]);
+				triangle_list.push_back(CBaseModel::CFace(0, 1, 3));
+				triangle_list.push_back(CBaseModel::CFace(1, 2, 3));
+				triangle_list.push_back(CBaseModel::CFace(2, 0, 3));
+				for (int j = 0; j < triangle_list.size(); ++j){
+					triangle_list[j][0] = input_point_index[triangle_list[j][0]];
+					triangle_list[j][1] = input_point_index[triangle_list[j][1]];
+					triangle_list[j][2] = input_point_index[triangle_list[j][2]];
+				}
+				face_list_[face_index] = triangle_list[0];
+				for (int j = 1; j < triangle_list.size(); ++j){
+					origin_of_new_face.push_back(face_index);
+					face_list_.push_back(triangle_list[j]);
+				}
+				continue;
+			}
+
+			Point2D v_2D[3];
+			vector<Point2D> input_point_list_2D;
+			vector<int> input_point_index;
+			map3DTriangleTo2D(v_3D, v_2D);
+			for (int j = 0; j < 3; ++j){
+				input_point_list_2D.push_back(v_2D[j]);
+				input_point_index.push_back(v_index[j]);
+				if (model_.SimpleEdge(simple_edge_index[j]).v1 == v_index[j]){
+					for (int k = 0; k < vertex_on_simple_edge[simple_edge_index[j]].size(); ++k){
+						CPoint3D& temp_vertex_3d = vertex_list_[vertex_on_simple_edge[simple_edge_index[j]][k]];
+						Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+						input_point_list_2D.push_back(temp_vertex_2d);
+						input_point_index.push_back(vertex_on_simple_edge[simple_edge_index[j]][k]);
+					}
+				}
+				else {
+					for (int k = vertex_on_simple_edge[simple_edge_index[j]].size() - 1; k >= 0; --k){
+						CPoint3D& temp_vertex_3d = vertex_list_[vertex_on_simple_edge[simple_edge_index[j]][k]];
+						Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+						input_point_list_2D.push_back(temp_vertex_2d);
+						input_point_index.push_back(vertex_on_simple_edge[simple_edge_index[j]][k]);
+					}
+				}
+			}
+			vector<vector<int>> input_segment_list;
+			for (int j = 0; j < input_point_list_2D.size(); ++j){
+				vector<int> segment(2);
+				segment[0] = j;
+				segment[1] = (j + 1) % input_point_list_2D.size();
+				input_segment_list.push_back(segment);
+			}
+			for (int j = 0; j < vertex_in_face[face_index].size(); ++j){
+				CPoint3D& temp_vertex_3d = vertex_list_[vertex_in_face[face_index][j]];
+				Point2D temp_vertex_2d = ptIn3DTriangleTo2D(v_3D, v_2D, temp_vertex_3d);
+				input_point_list_2D.push_back(temp_vertex_2d);
+				input_point_index.push_back(vertex_in_face[face_index][j]);
+			}
+			vector<Point2D> output_point_list;
+			vector<CBaseModel::CFace> triangle_list;
+			vector<vector<int>> output_segment_list;
+			triangulateSegLoop(input_point_list_2D, input_segment_list, output_point_list, triangle_list, output_segment_list, "pzQ");
+			assert(output_point_list.size() == input_point_list_2D.size());
+			for (int j = 0; j < triangle_list.size(); ++j){
+				triangle_list[j][0] = input_point_index[triangle_list[j][0]];
+				triangle_list[j][1] = input_point_index[triangle_list[j][1]];
+				triangle_list[j][2] = input_point_index[triangle_list[j][2]];
+			}
+			face_list_[face_index] = triangle_list[0];
+			for (int j = 1; j < triangle_list.size(); ++j){
+				origin_of_new_face.push_back(face_index);
+				face_list_.push_back(triangle_list[j]);
+			}
+		}
+	}
+	void WriteToFile(const string& file_name){
 		cout << "write to file " << file_name << "\n";
-		FILE* file_obj = fopen(file_name.c_str(),"w");
-		if( file_obj == NULL ){
+		FILE* file_obj = fopen(file_name.c_str(), "w");
+		if (file_obj == NULL){
 			printf("error in write to file %s\n", file_name.c_str());
-			return ;
+			return;
 		}
-		for(int j = 0; j < vertex_list_.size();++j){
-			fprintf(file_obj,"v %lf %lf %lf\n" , vertex_list_[j].x,vertex_list_[j].y,vertex_list_[j].z);
+		for (int j = 0; j < vertex_list_.size(); ++j){
+			fprintf(file_obj, "v %lf %lf %lf\n", vertex_list_[j].x, vertex_list_[j].y, vertex_list_[j].z);
 		}
-		for(int j = 0; j < face_list_.size();++j){
-			fprintf(file_obj,"f %d %d %d\n" , face_list_[j][0]+1,face_list_[j][1]+1,face_list_[j][2]+1);
+		for (int j = 0; j < face_list_.size(); ++j){
+			fprintf(file_obj, "f %d %d %d\n", face_list_[j][0] + 1, face_list_[j][1] + 1, face_list_[j][2] + 1);
 		}
 		fclose(file_obj);
 	}
 
 };
-
 #endif

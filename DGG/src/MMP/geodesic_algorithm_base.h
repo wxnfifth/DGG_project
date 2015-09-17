@@ -49,8 +49,12 @@ public:
 
 	virtual void trace_back(SurfacePoint& destination,		//trace back piecewise-linear path
 							std::vector<SurfacePoint>& path) {}
+	virtual void trace_back_interval(SurfacePoint& destination,		//trace back piecewise-linear path
+		std::vector<SurfacePoint>& path,
+		interval_pointer& result_interval
+		) {}
 	virtual void trace_back_find_edge(SurfacePoint& destination,		//trace back piecewise-linear path
-		std::vector<SurfacePoint>& path, int edge_v0, int edge_v1, interval_pointer& result_interval) {}
+		std::vector<SurfacePoint>& path,int edge_v0, int edge_v1, interval_pointer& result_interval) {}
 	
 
 	void geodesic(SurfacePoint& source,

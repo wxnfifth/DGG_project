@@ -103,6 +103,7 @@ public:
 
 
 	inline int GetNumOfEdges() const;
+	inline int GetNumOfSimpleEdges() const;
 	inline int GetNumOfValidDirectedEdges() const;
 	inline int GetNumOfTotalUndirectedEdges() const;
 	inline int GetNumOfGenera() const;
@@ -194,6 +195,12 @@ int CRichModel::GetNumOfEdges() const
 {
 	return (int)m_Edges.size();
 }
+
+int CRichModel::GetNumOfSimpleEdges() const
+{
+	return (int)m_SimpleEdges.size();
+}
+
 
 bool CRichModel::isBoundaryVert(int index) const
 {

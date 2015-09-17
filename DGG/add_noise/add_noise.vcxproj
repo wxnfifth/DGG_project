@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{184D4890-F3FA-4F66-9159-71BB1BD101A2}</ProjectGuid>
-    <RootNamespace>figure5</RootNamespace>
+    <ProjectGuid>{C2FDC1CE-E2C9-430C-A47D-11F3950D1A80}</ProjectGuid>
+    <RootNamespace>add_noise</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -69,10 +69,6 @@
     <IncludePath>..\src;$(IncludePath)</IncludePath>
     <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\src;$(IncludePath)</IncludePath>
-    <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -105,6 +101,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glut64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -120,14 +117,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glut64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glut64.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\x64\Release\figure5.exe ..\..\bin\figure5.exe</Command>
+      <Command>copy ..\x64\Release\add_noise.exe ..\..\bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\DGG_precompute\svg_precompute.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />
@@ -136,16 +132,15 @@
     <ClCompile Include="..\src\ICH\Point3D.cpp" />
     <ClCompile Include="..\src\ICH\PreviousCH.cpp" />
     <ClCompile Include="..\src\ICH\RichModel.cpp" />
-    <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp" />
+    <ClCompile Include="..\src\WXN\triangle.cpp" />
     <ClCompile Include="..\src\WXN\wxnMath.cpp" />
     <ClCompile Include="..\src\WXN\wxn_geometry.cpp" />
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
-    <ClCompile Include="figure5_main.cpp" />
+    <ClCompile Include="..\src\WXN\wxn_triangle.cpp" />
+    <ClCompile Include="..\src\YXMetric\YXApproxBlueNoise.cpp" />
+    <ClCompile Include="add_noise.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\DGG_precompute\svg_precompute.h" />
-    <ClInclude Include="..\src\DGG_precompute\tmp_stdafx.h" />
-    <ClInclude Include="..\src\DGG_precompute\wxnTime.h" />
     <ClInclude Include="..\src\ICH\BaseModel.h" />
     <ClInclude Include="..\src\ICH\ExactMethodForDGP.h" />
     <ClInclude Include="..\src\ICH\Geometry.h" />
@@ -154,24 +149,17 @@
     <ClInclude Include="..\src\ICH\Point3D.h" />
     <ClInclude Include="..\src\ICH\PreviousCH.h" />
     <ClInclude Include="..\src\ICH\RichModel.h" />
-    <ClInclude Include="..\src\JIAJUN\dgg_pruning.h" />
-    <ClInclude Include="..\src\MMP\geodesic_algorithm_base.h" />
-    <ClInclude Include="..\src\MMP\geodesic_algorithm_exact.h" />
-    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_basement.h" />
-    <ClInclude Include="..\src\MMP\geodesic_algorithm_mmp_elements.h" />
-    <ClInclude Include="..\src\MMP\geodesic_algorithm_vg_mmp.h" />
-    <ClInclude Include="..\src\MMP\geodesic_constants_and_simple_functions.h" />
-    <ClInclude Include="..\src\MMP\geodesic_memory.h" />
-    <ClInclude Include="..\src\MMP\geodesic_mesh.h" />
-    <ClInclude Include="..\src\MMP\geodesic_mesh_elements.h" />
-    <ClInclude Include="..\src\MMP\LinearQueue.h" />
-    <ClInclude Include="..\src\MMP\ListGroup.h" />
-    <ClInclude Include="..\src\MMP\MyList.h" />
+    <ClInclude Include="..\src\WXN\triangle.h" />
     <ClInclude Include="..\src\WXN\wxnMath.h" />
     <ClInclude Include="..\src\WXN\wxnTime.h" />
     <ClInclude Include="..\src\WXN\wxn_dijstra.h" />
     <ClInclude Include="..\src\WXN\wxn_geometry.h" />
     <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
+    <ClInclude Include="..\src\WXN\wxn_triangle.h" />
+    <ClInclude Include="..\src\YXMetric\YXApproxBlueNoise.h" />
+    <ClInclude Include="..\src\YXMetric\YXMetric.h" />
+    <ClInclude Include="..\src\YXMetric\YXSimpleHashMap.h" />
+    <ClInclude Include="..\src\YXMetric\YXWhiteNoise.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

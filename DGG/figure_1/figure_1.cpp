@@ -1,3 +1,4 @@
+
 #include "ICH\RichModel.h"
 #include "ICH\ICHWithFurtherPriorityQueue.h"
 #include "wxn\wxn_dijstra.h"
@@ -70,7 +71,7 @@ void getSVGDistance(const CRichModel& model, int source_vert, const string& svg_
 }
 
 
-void outputDistanceField(CRichModel& model, vector<double>& dis, const string& output_filename)
+void outputDistanceField(CRichModel& model, const vector<double>& dis, const string& output_filename)
 {
 	assert(model.GetNumOfVerts() == dis.size());
 
@@ -78,7 +79,8 @@ void outputDistanceField(CRichModel& model, vector<double>& dis, const string& o
 	double max_dis = std::max(max_dis, *std::max_element(dis.begin(), dis.end()));
 	ich_texture.reserve(model.GetNumOfVerts());
 	for (double d : dis) {
-		ich_texture.push_back(make_pair(d / max_dis, d / max_dis));
+		//ich_texture.push_back(make_pair(d / max_dis, d / max_dis));
+		ich_texture.push_back(make_pair(d, d));
 	}
 	model.FastSaveObjFile(output_filename, ich_texture);
 
@@ -89,7 +91,7 @@ void computeError(const vector<double>& correct_dis, const vector<double>& dis, 
 	assert(correct_dis.size() == dis.size());
 	error.resize(dis.size());
 	for (int i = 0; i < correct_dis.size(); ++i) {
-		if (fabs(correct_dis[i]) < 1e-7 || !isfinite(correct_dis[i]) || !isfinite((dis[i]))) {
+		if (fabs(correct_dis[i]) < 1e-9 || !isfinite(correct_dis[i]) || !isfinite((dis[i]))) {
 			error[i] = 0;
 		} else{
 			error[i] = fabs(correct_dis[i] - dis[i]) / correct_dis[i];
@@ -136,8 +138,28 @@ void normalizeError(vector<double>& svg_error, double min_error, double max_erro
 	//printf("\n");
 }
 
+void logNormalizeErrorAndOutput(vector<double>& svg_error, double min_error, double max_error, CRichModel& model, const string& output_filename)
+{
+	//	for (auto& e : svg_error) {
+	for (int i = 0; i < svg_error.size(); ++i) {
+		if (svg_error[i] < min_error) {
+			svg_error[i] = min_error;
+			//printf("min_error ");
+		}
+		if (svg_error[i] >= max_error){
+			svg_error[i] = max_error;
+			//printf("max_error ");
+		}
+		svg_error[i] = (log(svg_error[i]) - log(min_error)) / (log(max_error) - log(min_error));
+		//printf("'%lf %lf %lf'", svg_error[i], min_error, max_error);
+	}
+	//printf("\n");
+	outputDistanceField(model, svg_error, output_filename);
+}
 
-void figure_1()
+
+
+void figure_1(int source_vert)
 {
 	string obj_file_name = "gargoyle_nf700k.obj";
 	string dgg_filename = "gargoyle_nf700k_DGG0.000100_c20_pruning.binary";
@@ -146,12 +168,6 @@ void figure_1()
 	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
 	CRichModel model(obj_file_name);
 	model.Preprocess();
-
-	//int source_vert = 319073;
-	//int source_vert = 120733;
-	//int source_vert = 125931;
-	//int source_vert = 125002;
-	int source_vert = 32042;
 
 	vector<double> correct_dis;
 
@@ -185,7 +201,6 @@ void figure_1()
 
 	normalizeError(svg_error, min_error, max_error);
 	outputDistanceField(model,svg_error, obj_prefix + "svg_error.obj");
-	 
 }
 
 
@@ -205,18 +220,17 @@ void getObjDistance(CRichModel& model, string& fmm_filename , vector<double>& fm
 	fclose(file);
 }
 
-void test_fast_marching()
+void test_fast_marching(int source_vert)
 {
 	string obj_file_name = "gargoyle_nf700k.obj";
 	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
 	CRichModel model(obj_file_name);
 	model.Preprocess();
-	int source_vert = 32042;
-	string fmm_filename = "gargoyle_nf700k_fmm_linear_dis.obj";
 	vector<double> correct_dis;
 
 	getICHDistance(model, source_vert, correct_dis);
 
+	string fmm_filename = "gargoyle_nf700k_fmm_linear_dis.obj";
 	vector<double> fmm_dis;
 	getObjDistance(model, fmm_filename, fmm_dis);
 
@@ -224,7 +238,6 @@ void test_fast_marching()
 	computeError(correct_dis, fmm_dis, fmm_error);
 	writeErrorFIle(fmm_error, "fmm_error.txt");
 	computeStatics(fmm_error);
-
 
 }
 
@@ -236,19 +249,29 @@ void normalizeDis(vector<double>& dis)
 	}
 }
 
-void test_heat()
+void normalizeDis(const vector<double>& dis, vector<double>& normalized_dis)
+{
+	normalized_dis.reserve(dis.size());
+	double max_dis = *max_element(dis.begin(), dis.end());
+	for (auto d : dis){
+		d /= max_dis;
+		normalized_dis.push_back(d);
+	}
+}
+
+
+void test_heat(int source_vert)
 {
 	string obj_file_name = "gargoyle_nf700k.obj";
 	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
 	CRichModel model(obj_file_name);
 	model.Preprocess();
-	int source_vert = 32042;
-	string heat_filename = "gargoyle_nf700k_heat_s32042_m5.00.obj";
 	vector<double> correct_dis;
 
 	getICHDistance(model, source_vert, correct_dis);
 	normalizeDis(correct_dis);
 
+	string heat_filename = "gargoyle_nf700k_heat_s32042_m5.00.obj";
 	vector<double> heat_dis;
 	getObjDistance(model, heat_filename, heat_dis);
 	normalizeDis(heat_dis);
@@ -257,9 +280,6 @@ void test_heat()
 	computeError(correct_dis, heat_dis, heat_error);
 	writeErrorFIle(heat_error, "heat_error.txt");
 	computeStatics(heat_error);
-
-
-
 
 }
 
@@ -283,35 +303,18 @@ void test_delaunay_mesh()
 		}
 	}
 
-	//int delaunay_source = 0;
-	//double min_dis =1e10;
-	//for (int i = 0; i < delaunay_model.GetNumOfVerts(); ++i) {
-	//	double dis = (delaunay_model.Vert(i) - model.Vert(source_vert)).Len();
-	//	if (min_dis > dis){
-	//		min_dis = dis;
-	//		delaunay_source = i;
-	//	}
-	//}
-	//printf("delaunay_source %d\n", delaunay_source);
-
-
 }
 
-void test_heat_delaunay()
+void test_heat_delaunay(int source_vert)
 {
 	string obj_file_name = "gargoyle_nf700k.obj";
 	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
 	CRichModel model(obj_file_name);
 	model.Preprocess();
-	int source_vert = 32042;
 
 	vector<double> correct_dis;
-
 	getICHDistance(model, source_vert, correct_dis);
 	normalizeDis(correct_dis);
-	//for (int i = 0; i < 100; ++i) {
-	//	printf("%lf ", correct_dis[i]);
-	//}
 
 	vector<string> heat_filenames = { "gargoyle_nf700k.delaunay2_heat_s32042_m3.00.obj",
 									  "gargoyle_nf700k.delaunay3_heat_s32042_m3.00.obj",
@@ -342,15 +345,116 @@ void test_heat_delaunay()
 	}
 }
 
+int main_old()
+{
+	int source_vert = 93598;
+	string obj_filename = "gargoyle_nf700k.obj";
+	string anisotropic_filename = "gargoyle_nf700k_anisotropic.obj";
+	CRichModel model(obj_filename);
+	model.Preprocess();
+	CRichModel model_anisotropic(anisotropic_filename);
+	model_anisotropic.Preprocess();
+	double min_dis = 1e100;
+	int min_pos = 0;
+	for (int i = 0; i < model_anisotropic.GetNumOfVerts(); ++i) {
+		double dis = (model_anisotropic.Vert(i) - model.Vert(source_vert)).Len();
+		if (dis < min_dis) {
+			min_dis = dis;
+			min_pos = i;
+		}
+	}
+	printf("min_pos %d min_dis %lf\n", min_pos, min_dis);//91011
+	return 0;
+
+}
+
 int main()
 {
+	int source_vert = 93598;
+	//int source_vert = 32042;
+	string obj_file_name = "gargoyle_nf700k.obj";
+	string dgg_filename = "gargoyle_nf700k_DGG0.000100_c20_pruning.binary";
+	string svg_filename = "gargoyle_nf700k_SVG_k483.binary";
 
-  //figure_1();
-  
-	//test_fast_marching();
-	//test_heat();
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+	double min_error = 0.00001;
+	double max_error = 0.05;
 
-	//test_heat_delaunay();
-	test_heat_delaunay();
+	vector<double> correct_dis;
+	getICHDistance(model, source_vert, correct_dis);
+	outputDistanceField(model, correct_dis, obj_prefix + "_ich.obj");
+
+	if (true) {
+		vector<double> dgg_dis;
+		getDGGDistance(model, source_vert, dgg_filename, dgg_dis);
+		outputDistanceField(model, dgg_dis, obj_prefix + "_dgg_dis.obj");
+		printf("dgg_statis:\n");
+		vector<double> dgg_error;
+		computeError(correct_dis, dgg_dis, dgg_error);
+		writeErrorFIle(dgg_error, "dgg_error.txt");
+		computeStatics(dgg_error);
+		logNormalizeErrorAndOutput(dgg_error, min_error, max_error, model, obj_prefix + "dgg_log_error.obj");
+	}
+
+	if (true) {
+		vector<double> svg_dis;
+		getSVGDistance(model, source_vert, svg_filename, svg_dis);
+		outputDistanceField(model, svg_dis, obj_prefix + "_svg_dis.obj");
+		printf("svg_statis:\n");
+		vector<double> svg_error;
+		computeError(correct_dis, svg_dis, svg_error);
+		writeErrorFIle(svg_error, "svg_error.txt");
+		computeStatics(svg_error);
+		//normalizeError(svg_error, min_error, max_error);
+		logNormalizeErrorAndOutput(svg_error, min_error, max_error, model, obj_prefix + "svg_log_error.obj");
+	}
+
+	string fmm_filename = "gargoyle_nf700k_fmm_linear_dis.obj";
+	vector<double> fmm_dis;
+	getObjDistance(model, fmm_filename, fmm_dis);
+	vector<double> fmm_error;
+	computeError(correct_dis, fmm_dis, fmm_error);
+	writeErrorFIle(fmm_error, "fmm_error.txt");
+	computeStatics(fmm_error);
+	logNormalizeErrorAndOutput(fmm_error, min_error, max_error, model, obj_prefix + "fmm_log_error.obj");
+
+
+
+	string heat_filename = "gargoyle_heat.0.obj";
+	vector<double> heat_dis;
+	getObjDistance(model, heat_filename, heat_dis);
+	vector<double> heat_error;
+	computeError(correct_dis, heat_dis, heat_error);
+	writeErrorFIle(heat_error, "heat_error.txt");
+	computeStatics(heat_error);
+	logNormalizeErrorAndOutput(heat_error, min_error, max_error, model, obj_prefix + "heat_log_error.obj");
+
+	//vector<double> normalized_correct_dis;
+	//normalizeDis(correct_dis, normalized_correct_dis);
+
+	//vector<string> heat_filenames = { 
+	//	"gargoyle_nf700k.delaunay4_heat_s" + to_string(source_vert) + "_m3.00.obj",
+	//	"gargoyle_nf700k_heat_s" + to_string(source_vert) + "_m3.00.obj" };
+	//vector<string> error_filename_prefix = { 
+	//	"delaunay4_heat_error",
+	//	"heat_erro" };
+	//for (int type = 0; type < 2; ++type)
+	//{
+	//	//string heat_filename = "gargoyle_nf700k.delaunay4_heat_s32042_m3.00.obj";
+	//	string heat_filename = heat_filenames[type];
+	//	cout << heat_filename << "\n";
+	//	vector<double> heat_dis;
+	//	getObjDistance(model, heat_filename, heat_dis);
+	//	normalizeDis(heat_dis);
+	//	heat_dis = vector<double>(heat_dis.begin(), heat_dis.begin() + model.GetNumOfVerts());
+
+	//	vector<double> heat_error;
+	//	computeError(normalized_correct_dis, heat_dis, heat_error);
+	//	//writeErrorFIle(heat_error, error_filename_prefix[type]+".txt");
+	//	computeStatics(heat_error);
+	//	logNormalizeErrorAndOutput(heat_error, min_error, max_error, model, error_filename_prefix[type] + ".obj");
+	//}
 	return 0;
 }

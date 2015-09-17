@@ -736,7 +736,7 @@ void figure7_a()
   model.Preprocess();
   int source = 14706;
   double eps_vg = 0.005;
-  double cylinder_radius = 0.0002;
+  double cylinder_radius = 0.0003;
 	set<int> dest_verts;
 	computeDests(model, model_filename,eps_vg,source,dest_verts);
   CylinderPath cylinder1(cylinder_radius);
@@ -839,6 +839,6 @@ void figure7_b_2()
 int main()
 {
 	figure7_a();
-  figure7_b_2();
+  //figure7_b_2();
 
 }

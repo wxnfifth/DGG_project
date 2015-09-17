@@ -3,7 +3,7 @@
 #include "MMP\geodesic_algorithm_vg_mmp.h"
 #include "ICH\RichModel.h"
 #include "WXN\wxn_path_helper.h"
-
+#include "wxn\wxn_dijstra.h"
 void getDests(string& input_obj_name, const CRichModel& model, int source_index, double eps_vg, map<int, double>& fixedDests)
 {
 	std::vector<double> points;
@@ -164,25 +164,55 @@ void figure_pruning_bunny()
 	model.Preprocess();
 	int source = 4183;
 	double eps_vg = 0.001;
-	double cylinder_radius = 0.0004;
+	//double cylinder_radius = 0.0004;
+	double cylinder_radius = 0.0006;
 	int dest;
 	dest = findDest(model, input_obj_name, source, eps_vg);
 
-	{
-		map<int, double> fixedDests;
-		CRichModel model(input_obj_name);
-		model.Preprocess();
-		getDests(input_obj_name, model, source, eps_vg, fixedDests);
-		CylinderPath cylinder1(cylinder_radius);
-		vector<int> dests;
-		for (auto& d : fixedDests) {
-			if (d.first != dest) {
-				dests.push_back(d.first);
-			}
-		}
-		cylinder1.addGeodesicPaths(model, source, dests);
-		cylinder1.write_to_file("bunny_dgg_edges.obj");
-	}
+
+	string dgg_before_filename = "bunny_nf10k_DGG0.001000_c5.binary";
+	string dgg_after_filename = "bunny_nf10k_DGG0.001000_c5_pruning.binary";
+	SparseGraph<float>* graph_before = new LC_HY<float>();
+	graph_before->read_svg_file_with_angle((string)dgg_before_filename);
+	dynamic_cast<LC_HY<float>*>(graph_before)->setModel(model);
+	SparseGraph<float>* graph_after = new LC_HY<float>();
+	graph_after->read_svg_file_with_angle((string)dgg_after_filename);
+	dynamic_cast<LC_HY<float>*>(graph_after)->setModel(model);
+
+	auto neigh_before = graph_before->graphNeighbor(source);
+	sort(neigh_before.begin(), neigh_before.end());
+	auto neigh_after = graph_after->graphNeighbor(source);
+	sort(neigh_after.begin(), neigh_after.end());
+	std::vector<int> redunctant(neigh_before.size());
+	auto it = std::set_difference(neigh_before.begin(), neigh_before.end(),
+		neigh_after.begin(), neigh_after.end(), redunctant.begin());
+	redunctant.resize(it - redunctant.begin());
+	CylinderPath cylinder_redunct(cylinder_radius);
+	cylinder_redunct.addGeodesicPaths(model, source, redunctant);
+	cylinder_redunct.write_to_file("bunny_dgg_edges_redunct.obj");
+	CylinderPath cylinder_after(cylinder_radius * 1.5);
+	cylinder_after.addGeodesicPaths(model, source, neigh_after);
+	cylinder_after.write_to_file("bunny_dgg_edges_after.obj");
+
+	//{
+	//	map<int, double> fixedDests;
+	//	CRichModel model(input_obj_name);
+	//	model.Preprocess();
+	//	getDests(input_obj_name, model, source, eps_vg, fixedDests);
+	//	CylinderPath cylinder1(cylinder_radius);
+	//	vector<int> dests;
+	//	for (auto& d : fixedDests) {
+	//		if (d.first != source) {
+	//			dests.push_back(d.first);
+	//		}
+	//	}
+	//	cylinder1.addGeodesicPaths(model, source, dests);
+	//	for (int d : dests){
+	//		printf("%d ", d);
+	//	}
+	//	printf("\n");
+	//	cylinder1.write_to_file("bunny_dgg_edges.obj");
+	//}
 
 	vector<int> sources;
 	sources.push_back(source);
@@ -237,6 +267,9 @@ void figure_pruning_bunny()
 	vector<CPoint3D> points{ model.Vert(source), model.Vert(dest) };
 	printBallToObj(points, "bunny_source_dest_points.obj", cylinder_radius * 10);
 	printBallToObj(vector < CPoint3D > {model.Vert(mid_vert)}, "bunny_mid_points.obj", cylinder_radius * 5);
+
+	delete graph_before;
+	delete graph_after;
 
 }
 
