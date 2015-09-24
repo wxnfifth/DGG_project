@@ -16,6 +16,9 @@
     <Filter Include="ICH">
       <UniqueIdentifier>{558b2ff7-b003-48a3-b5c3-239388dbb00b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="WXN">
+      <UniqueIdentifier>{60542746-4936-4fb7-a0eb-0e99d1ade59a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ICH\BaseModel.cpp">
@@ -63,6 +66,21 @@
     <ClCompile Include="..\src\figure_1\PriorityQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\WXN\triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\wxnMath.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\wxn_geometry.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\wxn_path_helper.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\wxn_triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ICH\BaseModel.h">
@@ -106,6 +124,27 @@
     </ClInclude>
     <ClInclude Include="..\src\figure_1\PriorityQueue.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\triangle.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxnMath.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxnTime.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_dijstra.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_geometry.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_path_helper.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_triangle.h">
+      <Filter>WXN</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

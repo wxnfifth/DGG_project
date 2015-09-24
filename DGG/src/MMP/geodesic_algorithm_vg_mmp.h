@@ -181,9 +181,6 @@ inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sour
     dest_verts[v1] = distance_v1;
     }
 
-
-
-
     //printf("min_interval %lf d_max %lf\n" , min_interval->min(), d_max);
     //update d_max
 

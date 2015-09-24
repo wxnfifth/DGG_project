@@ -33,6 +33,9 @@ public:
 			}
 		}
 	}
+
+
+
 	YXMeshPoint * getPointOnFace(int faceIndex) const{
 		return pt + ptCountOnFace[faceIndex];
 	}

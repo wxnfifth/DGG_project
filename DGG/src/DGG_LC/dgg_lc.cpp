@@ -148,9 +148,6 @@ int main(int argc, char** argv)
     return 1;
   }
 
-
-
-
   vector<pair<double,double>> erros_list;//<dis,error>
   std::mt19937 rng;
   std::uniform_int_distribution<int> uint_dist(0,s_graph->NodeNum()-1);

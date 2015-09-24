@@ -65,6 +65,10 @@ public:
 		}
 	}
 	float sampling(int approxSamplingNumber, int preSampleRate = 10){
+		if (approxSamplingNumber < mesh.nvert) {
+			printf("error in blue noise sampling!\n");
+			exit(1);
+		}
 		YXWhiteNoise whiteNoise;
 		int WN = preSampleRate * approxSamplingNumber;
 		whiteNoise.sampling(&metric, WN);
@@ -74,6 +78,7 @@ public:
 		computeGridSize(); 
 		assignCells(&whiteNoise, WN);
 		result.clear();
+		printf("before random sampling\n");
 		randomOrderSampling(&whiteNoise, WN);
 		whiteNoise.clear();
 		return radius;
@@ -109,7 +114,14 @@ protected:
 	void assignCells(YXWhiteNoise * wn, int N){
 		YXMeshPoint * pt = wn->pt;
 		ptInCells.resize(N);
-		for(int i = 0; i < N; ++i){
+		for (int i = 0; i < mesh.nvert; ++i) {
+			ptInCells[i].pt = mesh.vert[i];
+			ptInCells[i].cellID = position_to_cellID(ptInCells[i].pt);
+			ptInCells[i].status = ACCEPTED;
+			ptInCells[i].index = i;
+			ptInCells[i].faceid = metric.faceIndex(metric.getAnyEdgeStartFromVert(i));
+		}
+		for (int i = mesh.nvert; i < N; ++i){
 			const YXFace & f = mesh.face[pt[i].faceid];
 			ptInCells[i].pt = mesh.vert[f.v[0]].scale( pt[i].a ) + 
 				mesh.vert[f.v[1]].scale( pt[i].b ) + mesh.vert[f.v[2]].scale( 1.0 - pt[i].a - pt[i].b );
@@ -137,16 +149,20 @@ protected:
 		std::vector <int> randomIndex;
 		randomIndex.resize(N);
 		for(int i = 0; i < N; ++i) randomIndex[i] = i;
-		std::random_shuffle(randomIndex.begin(), randomIndex.end());
+		//std::random_shuffle(randomIndex.begin(), randomIndex.end());
 		for(int i = 0; i < N; ++i){
+			//printf("i%d ",i );
 			int idx = randomIndex[i];
-			if(ptInCells[idx].status != IDLE) continue;
+			if(ptInCells[idx].status == REJECTED) continue;
 			rejectNeighbors(idx);
 			result.push_back( wn->pt[ ptInCells[idx].index ] );
 		}
 	}
 	void rejectNeighbors(int idx){
 		int x, y, z;
+		if (idx >= 3367) {
+			//printf("idx %d\n", idx);
+		}
 		cellID_to_xyz(ptInCells[idx].cellID, x, y, z);
 		for(int dx = x-1; dx <= x+1; ++dx)
 			for(int dy = y-1; dy <= y+1; ++dy)

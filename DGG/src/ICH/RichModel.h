@@ -134,7 +134,7 @@ public:
 	static CPoint3D CombinePointAndNormalTo(const CPoint3D& pt, const CPoint3D& normal);
 	static CPoint3D CombineTwoNormalsTo(const CPoint3D& pt1, double coef1, const CPoint3D& pt2, double coef2);	
 	double GetGaussCurvature(int vertIndex) const;
-
+	inline double GetEdgeVariance() const;
 
 	bool fBePreprocessed;
 protected:
@@ -150,6 +150,7 @@ protected:
 	double maxEdgeLength;
     double meanEdgeLength;
 };
+
 
 int CRichModel::IncidentVertex(int edgeIndex) const
 {
@@ -531,6 +532,18 @@ double CRichModel::GetMaxEdgeLength() const
 double CRichModel::GetMeanEdgeLength() const
 {
 	return meanEdgeLength;
+}
+
+double CRichModel::GetEdgeVariance() const
+{
+	double ave_edge_variance = 0;
+	for (int i = 0; i < GetNumOfSimpleEdges(); ++i) {
+		auto& simple_e = SimpleEdge(i);
+		double e_len = (Vert(simple_e.v1) - Vert(simple_e.v2)).Len();
+		ave_edge_variance += (e_len - GetMeanEdgeLength()) * (e_len - GetMeanEdgeLength());
+	}
+	ave_edge_variance = sqrt(ave_edge_variance / (GetNumOfSimpleEdges() - 1));
+	return ave_edge_variance;
 }
 
 #endif // !defined(AFX_RICHOBJMODEL_H__EB74D2F8_BA58_480E_9050_6FBC1C83D98B__INCLUDED_)

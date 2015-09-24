@@ -24,6 +24,7 @@ protected:
 	virtual void BuildSequenceTree();
 	double BuildSequenceTree_vertNum(int levelNum, set<int> &fixedDests);
 	void BuildSequenceTree_Dis(double distThreshold, set<int> &fixedDests);
+	void BuildSequenceTree_DGG(double eps_vg, set<int> &fixedDests);
 	void BuildSequenceTree_SVG(double distThreshold, set<int> &fixedDests, int max_covered_points);
 	virtual void InitContainers();
 	virtual void ClearContainers();
@@ -34,6 +35,7 @@ public:
 	virtual ~CICHWithFurtherPriorityQueue();	
 	double ExecuteLocally_vertNum(int levelNum, set<int> &fixedDests);
 	void ExecuteLocally_Dis(double distThreshold, set<int> &fixedDests);
+	void ExecuteLocally_DGG(double eps_vg, set<int> &fixedDests);
     void ExecuteLocally_SVG(double distThreshold, set<int> &fixedDests, int max_covered_points);
     static double GetExactGeoDisBetween(const CRichModel& inputModel, int indexOfSource, int indexOfDest);
 	static double GetExactGeoDisBetween(const CRichModel& inputModel, int indexOfSource, int indexOfDest, vector<CPoint3D> &path);
@@ -154,6 +156,7 @@ void CICHWithFurtherPriorityQueue::AddIntoQueueOfWindows(QuoteWindow& quoteW)
 	m_QueueForWindows.push(quoteW);
 	++nCountOfWindows;
 }
+
 bool CICHWithFurtherPriorityQueue::UpdateTreeDepthBackWithChoice()
 {
 	while (!m_QueueForPseudoSources.empty()

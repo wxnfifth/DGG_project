@@ -980,6 +980,39 @@ void svg_precompute_hy(const string& input_obj_name, double eps_vg, string& svg_
 }
 
 
+void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
+{
+	ElapasedTime total_t;
+	double theta = asin(sqrt(eps_vg));
+	theta *= const_for_theta;
+	fprintf(stderr, "******** eps %lf const %lf theta %lf du\n", eps_vg, const_for_theta, theta / M_PI * 180.0);
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+
+	char buf[1024];
+	sprintf(buf, "%s_DGG_ICH_%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
+	svg_file_name = string(buf);
+
+	int begin_vertex_index = 0;
+	int end_vertex_index = model.GetNumOfVerts();
+	ofstream output_file(svg_file_name.c_str(), ios::out | ios::binary);
+	int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
+	HeadOfSVG head_of_svg(begin_vertex_index, end_vertex_index, num_of_vertex);
+	output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
+	ElapasedTime time_once;
+
+
+	for (int source = 0; source < model.GetNumOfVerts(); ++source) {
+		CICHWithFurtherPriorityQueue alg(model, vector < int > {source});
+		set<int> fixed_dests;
+		alg.ExecuteLocally_DGG(eps_vg, fixed_dests);
+	}
+
+
+
+}
+
+
 void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
 {
   ElapasedTime total_t;
@@ -991,7 +1024,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
   std::vector<unsigned> faces;
   std::vector<int> realIndex;
   int originalVertNum = 0;
-  CRichModel model(input_obj_name);
+  CRichModel model(input_obj_name);      
   model.Preprocess();
 
   clock_t start = clock();
@@ -1013,7 +1046,6 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
   //  + "_HY" + to_string(eps_vg) +  ".binary";
 
   int begin_vertex_index = 0;
-
   int end_vertex_index = points.size() / 3 - 1;
 
   ofstream output_file (svg_file_name.c_str() , ios::out | ios::binary);
@@ -1806,9 +1838,4 @@ void svg_precompute_hy_fast(const string& input_obj_name, double eps_vg, string&
   t.printTime("time_past ");
 
  // fprintf(stderr,"total_time_and_pruning %lf\n" , t + prune_time);
-
-
-
-
-
 }

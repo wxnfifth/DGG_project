@@ -20,9 +20,30 @@ CICHWithFurtherPriorityQueue::CICHWithFurtherPriorityQueue(const CRichModel& inp
 	nameOfAlgorithm = "ICH2";
 }
 
-
 CICHWithFurtherPriorityQueue::~CICHWithFurtherPriorityQueue()
 {
+}
+
+void CICHWithFurtherPriorityQueue::ExecuteLocally_DGG(double eps_vg, set<int> &fixedDests)
+{
+	if (fComputationCompleted)
+		return;
+	if (!fLocked)
+	{
+		fLocked = true;
+		nCountOfWindows = 0;
+		nMaxLenOfWindowQueue = 0;
+		depthOfResultingTree = 0;
+		InitContainers();
+		nTotalMilliSeconds = GetTickCount();
+		BuildSequenceTree_DGG(eps_vg, fixedDests);
+		nTotalMilliSeconds = GetTickCount() - nTotalMilliSeconds;
+		//FillExperimentalResults();
+		ClearContainers();
+
+		fComputationCompleted = true;
+		fLocked = false;
+	}
 }
 
 void CICHWithFurtherPriorityQueue::ExecuteLocally_Dis(double distThreshold, set<int> &fixedDests)
@@ -163,6 +184,51 @@ double CICHWithFurtherPriorityQueue::BuildSequenceTree_vertNum(int levelNum, set
 	}
 	return FLT_MAX;
 }
+
+void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int> &fixedDests)
+{
+	fixedDests.clear();
+	fixedDests.insert(indexOfSourceVerts.begin(), indexOfSourceVerts.end());
+	ComputeChildrenOfSource();
+	bool fFromQueueOfPseudoSources = UpdateTreeDepthBackWithChoice();
+	while (!m_QueueForPseudoSources.empty() || !m_QueueForWindows.empty())
+	{
+		if ((int)m_QueueForWindows.size() > nMaxLenOfWindowQueue)
+			nMaxLenOfWindowQueue = (int)m_QueueForWindows.size();
+		if (m_QueueForPseudoSources.size() > nMaxLenOfPseudoSources)
+			nMaxLenOfPseudoSources = m_QueueForPseudoSources.size();
+		double minCurrentDis = DBL_MAX;
+		if (fFromQueueOfPseudoSources) //pseudosource
+		{
+			minCurrentDis = m_QueueForPseudoSources.top().disUptodate;
+		}
+		else
+		{
+			QuoteWindow quoteW = m_QueueForWindows.top();
+			minCurrentDis = quoteW.disUptodate;
+		}
+
+		if (fFromQueueOfPseudoSources) //pseudosource
+		{
+			int indexOfVert = m_QueueForPseudoSources.top().indexOfVert;
+			m_QueueForPseudoSources.pop();
+			fixedDests.insert(indexOfVert);
+
+			if (!model.IsConvexVert(indexOfVert))
+				ComputeChildrenOfPseudoSource(indexOfVert);
+		}
+		else
+		{
+			QuoteWindow quoteW = m_QueueForWindows.top();
+			m_QueueForWindows.pop();
+			ComputeChildrenOfWindow(quoteW);
+			delete quoteW.pWindow;
+		}
+
+		fFromQueueOfPseudoSources = UpdateTreeDepthBackWithChoice();
+	}
+}
+
 
 void CICHWithFurtherPriorityQueue::BuildSequenceTree_Dis(double distThrehold, set<int> &fixedDests)
 {

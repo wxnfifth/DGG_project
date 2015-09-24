@@ -21,7 +21,7 @@ int main(int argc, char** argv)
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
-    } else if (method == "h" || method == "p" || method == "d"|| method == "m") {
+    } else if (method == "h" || method == "p" || method == "d"|| method == "m" || method == "i" ) {
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
@@ -48,7 +48,12 @@ int main(int argc, char** argv)
       method = argv[3];
     } 
   } else {
-    fprintf(stderr,"wrong argument, usage example 'SVG_precompute.exe bunny.obj 50 [n(normal) f(fix_neighbor) j(jiajun's method)' y(jiajun's method and jiajun's output) h(hy's method) p(hy's method with prunning) d(dgg's method with prunning and fast)");
+    fprintf(stderr,"wrong argument, usage example 'SVG_precompute.exe bunny.obj 50  \
+				    n(normal) f(fix_neighbor) j(jiajun's method)' \
+					y(jiajun's method and jiajun's output) h(hy's method) \
+					p(hy's method with prunning) \
+					d(dgg's method with prunning and fast) \
+					i(ich's method)");
     exit(1);
   }
 
@@ -69,6 +74,8 @@ int main(int argc, char** argv)
     svg_precompute_hy_fast(input_file_name, eps_vg, svg_file_name, const_for_theta);
   } else if (method == "m") {
     svg_precompute_hy_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
+  } else if (method == "i") {
+    svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta);
   }
 
   return 0;

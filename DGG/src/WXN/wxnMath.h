@@ -453,6 +453,55 @@ public:
 		vertex_in_face.resize(model_.GetNumOfFaces());
 	}
 
+	void addVertexOnFace(const CPoint3D& vertex, const int face_index) {
+		if (face_index < 0) return;
+			int v_index[3];
+			int simple_edge_index[3];
+			CPoint3D v_3D[3];
+			for (int j = 0; j < 3; ++j){
+				v_index[j] = face_list_[face_index][j];
+				v_3D[j] = model_.Vert(v_index[j]);
+				simple_edge_index[j] = model_.GetEdgeFromFace(face_index, j).indexOfSimpleEdge;
+			}
+			int vertex_index = vertex_list_.size();
+			vertex_list_.push_back(vertex);
+			vertex_in_face[face_index].push_back(vertex_index);
+	}
+
+	void addVertexOnEdge(const CPoint3D& vertex, int simple_edge_id) {
+		int vertex_index = vertex_list_.size();
+		vertex_list_.push_back(vertex);
+		vector<int>& vertex_on_edge_id = vertex_on_simple_edge[simple_edge_id];
+		vector<pair<int, double>> vertex_on_a_simple_edge;
+		vertex_on_a_simple_edge.push_back(pair<int, double>(vertex_index,
+			(model_.Vert(model_.SimpleEdge(simple_edge_id).v1) -
+			vertex).Len()));
+		bool need_to_insert = true;
+		for (int i = 0; i < vertex_on_edge_id.size(); ++i){
+			pair<int, double> temp_vertex;//first is index ,second is distance to v1 on simple edge
+			temp_vertex.first = vertex_on_edge_id[i];
+			temp_vertex.second = (model_.Vert(model_.SimpleEdge(simple_edge_id).v1) -
+				vertex_list_[temp_vertex.first]).Len();
+			//if ((temp_vertex.second - vertex_on_a_simple_edge[0].second) / model_.GetEdgeFromFace(face_index, on_edge_id).length < 1e-3) {
+			//	need_to_insert = false;
+			//	break;
+			//}
+			vertex_on_a_simple_edge.push_back(temp_vertex);
+		}
+		if (need_to_insert){
+			sort(vertex_on_a_simple_edge.begin(), vertex_on_a_simple_edge.end(), compare_pair_second<std::less>());
+			vertex_on_edge_id.clear();
+			for (int i = 0; i < vertex_on_a_simple_edge.size(); ++i){
+				vertex_on_edge_id.push_back(vertex_on_a_simple_edge[i].first);
+			}
+		}
+		else{
+			vertex_list_.pop_back();
+
+		}
+	}
+
+
 	void addVertex(const CPoint3D& vertex, const int& face_index, int& source_index, int on_edge_id = -1){
 		if (face_index >= 0){
 			int v_index[3];
@@ -511,6 +560,7 @@ public:
 			}
 		}
 	}
+
 	void subdivide(){
 		double cnt = 0;
 		if (false){
