@@ -340,8 +340,6 @@ void CExactMethodForDGP::Execute()
 }
 
 
-
-
 CPoint3D CExactMethodForDGP::BackTraceDirectionOnly(int indexOfVert){
 	CPoint3D ret;
 	if (m_InfoAtVertices[indexOfVert].birthTime == -1)
@@ -355,7 +353,6 @@ CPoint3D CExactMethodForDGP::BackTraceDirectionOnly(int indexOfVert){
 	vertexNodes.push_back(index);
 	while (m_InfoAtVertices[index].disUptodate > FLT_EPSILON)
 	{
-
 		int indexOfParent = m_InfoAtVertices[index].indexOfParent;
 		if (m_InfoAtVertices[index].fParentIsPseudoSource)
 		{
@@ -425,6 +422,100 @@ CPoint3D CExactMethodForDGP::BackTraceDirectionOnly(int indexOfVert){
 				leftLen = disToAngle;				
 			}
 			model.GetPointByRotatingAround(edgeIndex, leftLen, rightLen, xBack, yBack);			
+			disToAngle = model.DistanceToIncidentAngle(edgeIndex, xBack, yBack);
+		};
+	}
+	return ret;
+	//m_tableOfResultingPaths[posOfTable].push_back(model.ComputeShiftPoint(indexOfSourceVert));
+}
+
+
+CPoint3D CExactMethodForDGP::BackTraceDirectionOnly(int indexOfVert, bool& isVert, int& id) {
+	CPoint3D ret;
+	if (m_InfoAtVertices[indexOfVert].birthTime == -1)
+	{
+		assert(model.GetNumOfComponents() != 1 || model.Neigh(indexOfVert).empty());
+		throw "What's wrong????";
+	}
+	//m_tableOfResultingPaths.push_back(list<CPoint3D>());
+	vector<int> vertexNodes;
+	int index = indexOfVert;
+	vertexNodes.push_back(index);
+	while (m_InfoAtVertices[index].disUptodate > FLT_EPSILON)
+	{
+		int indexOfParent = m_InfoAtVertices[index].indexOfParent;
+		if (m_InfoAtVertices[index].fParentIsPseudoSource)
+		{
+			index = indexOfParent;
+		}
+		else
+		{
+			index = m_InfoAtVertices[index].indexOfRootVertOfParent;
+		}
+		vertexNodes.push_back(index);
+	};
+	int indexOfSourceVert = index;
+	//int posOfTable = (int)m_tableOfResultingPaths.size() - 1;
+	for (int i = max(0, (int)vertexNodes.size() - 2); i < (int)vertexNodes.size() - 1; ++i)
+	{
+		int lastVert = vertexNodes[i];
+		//CPoint3D pt = model.ComputeShiftPoint(lastVert);
+		CPoint3D pt = model.Vert(lastVert);
+		//m_tableOfResultingPaths[posOfTable].push_back(pt);
+		ret = pt;
+		isVert = true;
+		id = lastVert;
+
+		if (m_InfoAtVertices[lastVert].fParentIsPseudoSource)
+		{
+			continue;
+		}
+		//printf("in exp map,line(603) indexOfVert = i = %d , vertexNodes.size() - 1 =%d\n" ,
+		//      indexOfVert , i , vertexNodes.size() - 1 );
+		int parentEdgeIndex = m_InfoAtVertices[lastVert].indexOfParent;
+		int edgeIndex = model.Edge(parentEdgeIndex).indexOfReverseEdge;
+		double leftLen = model.Edge(model.Edge(parentEdgeIndex).indexOfRightEdge).length;
+		double rightLen = model.Edge(model.Edge(parentEdgeIndex).indexOfLeftEdge).length;
+		double xBack = model.Edge(parentEdgeIndex).length - model.Edge(parentEdgeIndex).xOfPlanarCoordOfOppositeVert;
+		double yBack = -model.Edge(parentEdgeIndex).yOfPlanarCoordOfOppositeVert;
+		double disToAngle = model.DistanceToIncidentAngle(edgeIndex, xBack, yBack);
+
+		double proportion = 1 - m_InfoAtVertices[lastVert].entryProp;
+		int cnt = 0;
+		while (1)
+		{
+			cnt++;
+			if (cnt > 100) break;
+			//CPoint3D pt1 = model.ComputeShiftPoint(model.Edge(edgeIndex).indexOfLeftVert);
+			//CPoint3D pt2 = model.ComputeShiftPoint(model.Edge(edgeIndex).indexOfRightVert);
+			CPoint3D pt1 = model.Vert(model.Edge(edgeIndex).indexOfLeftVert);
+			CPoint3D pt2 = model.Vert(model.Edge(edgeIndex).indexOfRightVert);
+			CPoint3D ptIntersection = CRichModel::CombineTwoNormalsTo(pt1, 1 - proportion, pt2, proportion);
+			//m_tableOfResultingPaths[posOfTable].push_back(ptIntersection);
+			ret = ptIntersection;
+			isVert = false;
+			id = edgeIndex;
+
+			if (model.Edge(edgeIndex).indexOfOppositeVert == vertexNodes[i + 1])
+				break;
+
+			double oldProprotion = proportion;
+			proportion = model.ProportionOnLeftEdgeByImage(edgeIndex, xBack, yBack, oldProprotion);
+			if (proportion >= -LENGTH_EPSILON_CONTROL && proportion <= 1)
+			{
+				proportion = max(proportion, 0.0);
+				edgeIndex = model.Edge(edgeIndex).indexOfLeftEdge;
+				rightLen = disToAngle;
+			}
+			else
+			{
+				proportion = model.ProportionOnRightEdgeByImage(edgeIndex, xBack, yBack, oldProprotion);
+				proportion = max(proportion, 0.0);
+				proportion = min(proportion, 1.);
+				edgeIndex = model.Edge(edgeIndex).indexOfRightEdge;
+				leftLen = disToAngle;
+			}
+			model.GetPointByRotatingAround(edgeIndex, leftLen, rightLen, xBack, yBack);
 			disToAngle = model.DistanceToIncidentAngle(edgeIndex, xBack, yBack);
 		};
 	}

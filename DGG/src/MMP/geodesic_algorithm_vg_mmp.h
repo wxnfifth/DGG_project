@@ -152,8 +152,6 @@ inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sour
 
     assert(min_interval->d() < GEODESIC_INF);
 
-
-
     int v0 = edge->v0()->id();
     int v1 = edge->v1()->id();
     //printf("v0 %d v1 %d\n" , v0 , v1);
@@ -214,11 +212,11 @@ inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sour
 
       double tmp_d_max = GEODESIC_INF;
       if (min_interval->min() - tmp_e > 0) {
-        tmp_d_max = tmp_e * tmp_e / (2.0 * eps_vg * (min_interval->min() - tmp_e)) + tmp_e;
+        tmp_d_max =  tmp_e * tmp_e / (2.0 * eps_vg * (min_interval->min() - tmp_e)) + tmp_e;
       }
       d_max_current = min(d_max_current, tmp_d_max); 
       // f fprintf(stderr,stderr,"e %lf d_max %lf current %lf\n" , tmp_e, tmp_d_max, min_interval->min());
-      if (min_interval->min() > d_max_current - 1e-6) continue;
+      if (min_interval->min() > d_max_current - 1e-6) break;
     }
 
     if (false) {
@@ -272,7 +270,6 @@ inline void GeodesicAlgorithmVGMMP::propagate_vg(std::vector<SurfacePoint>& sour
       // fprintf(stderr,"e %lf d_max %lf current %lf\n" , tmp_e, tmp_d_max, min_interval->min());
       if (min_interval->min() > d_max_current - 1e-6) continue;
     }
-  
 #if 0
     if ( fabs(min_interval->min()) > 1e-10) {
 

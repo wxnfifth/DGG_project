@@ -7,6 +7,7 @@
 #include "MMP\geodesic_algorithm_vg_mmp.h"
 #include "JIAJUN\dgg_pruning.h"
 #include "svg_definition.h"
+#include "wxn\wxn_path_helper.h"
 #include <thread>
 
 bool flag_first_output = true;
@@ -990,7 +991,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	model.Preprocess();
 
 	char buf[1024];
-	sprintf(buf, "%s_DGG_ICH_%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
+	sprintf(buf, "%s_DGGICH%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
 	svg_file_name = string(buf);
 
 	int begin_vertex_index = 0;
@@ -1001,13 +1002,165 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
 	ElapasedTime time_once;
 
-
+	double past_time;
+	double average_degree = 0;
 	for (int source = 0; source < model.GetNumOfVerts(); ++source) {
+	//int source = 0;
+	//{
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			sprintf(buf, "Computed %.0lf percent", (double)source  * 100. / (end_vertex_index - begin_vertex_index));
+			time_once.printTime(buf);
+		}
+
 		CICHWithFurtherPriorityQueue alg(model, vector < int > {source});
 		set<int> fixed_dests;
 		alg.ExecuteLocally_DGG(eps_vg, fixed_dests);
-	}
 
+		//BodyHeadOfSVG body_header(source, fixed_dests.size());
+		//output_file.write((char*)&body_header, sizeof(body_header));
+		//for (auto& d:fixed_dests) {
+		//	BodyPartOfSVG b = BodyPartOfSVG(d, alg.m_InfoAtVertices[d].disUptodate);
+		//	output_file.write((char*)&b, sizeof(b));
+		//}
+		vector<double> angles;
+		angles.reserve(fixed_dests.size());
+		for (auto& d : fixed_dests) {
+			bool isVert;
+			int id;
+			CPoint3D t = alg.BackTraceDirectionOnly(d,isVert,id);
+			auto& neighs = model.Neigh(source);
+			vector<double> sum_angle(neighs.size() + 1);
+			sum_angle[0] = 0;
+			for (int j = 1; j <= neighs.size(); ++j) {
+				sum_angle[j] = sum_angle[j - 1] + neighs[j - 1].second;
+			}
+			double angle = 0;
+			if (isVert) {
+				bool flag_found = false;
+				for (int j = 0; j < neighs.size(); ++j) {
+					auto& neigh = neighs[j];
+					if (id == model.Edge(neigh.first).indexOfRightVert) {
+						//printf("yes\n");
+						flag_found = true;
+						angle = sum_angle[j];
+						break;
+					}
+				}
+				if (!flag_found) {
+					printf("not found vert!\n");
+					angle = -1;
+				}
+			} else { // is edge
+				int v0 = model.Edge(id).indexOfLeftVert;
+				int v1 = model.Edge(id).indexOfRightVert;
+				bool flag = false;
+				//CPoint3D p_cpoint3d(p.x(), p.y(), p.z());
+				for (int j = 0; j < neighs.size(); ++j) {
+					auto& neigh = neighs[j];
+					if (v0 == model.Edge(neigh.first).indexOfRightVert) {
+						int jminus1 = (j - 1 + neighs.size()) % neighs.size();
+						int vjminus1 = model.Edge(neighs[jminus1].first).indexOfRightVert;
+						int jplus1 = (j + 1) % neighs.size();
+						int vjplus1 = model.Edge(neighs[jplus1].first).indexOfRightVert;
+						//printf("v1 %d j -1 %d j + 1 %d\n" , v1, vjminus1, vjplus1); 
+
+						if (v1 == vjminus1) {//v1 first
+							double l = model.Edge(neighs[jminus1].first).length;
+							double r = (model.Vert(source) - t).Len();
+							double b = (model.Vert(vjminus1) - t).Len();
+							angle = sum_angle[jminus1] + acos((l * l + r * r - b * b) / (2 * l * r));
+						}
+						else if (v1 == vjplus1) {//v0 first
+							double l = model.Edge(neighs[j].first).length;
+							double r = (model.Vert(source) - t).Len();
+							double b = (model.Vert(v0) - t).Len();
+							angle = sum_angle[j] + acos((l * l + r * r - b * b) / (2 * l * r));
+						}
+						else{
+							fprintf(stderr, "error line 1081\n");
+						}
+						flag = true;
+						break;
+					}
+				}
+				if (!flag) {
+					//fprintf(stderr, "flag %d\n", flag);
+					//printf("source %d\n", source);
+					//printf("v0 %d v1 %d\n", v0, v1);
+					//printBallToObj(vector < CPoint3D > {model.Vert(source)},"bunny_nf10k_source.obj",0.01);
+					//printBallToObj(vector < CPoint3D > {model.Vert(v0),model.Vert(v1)}, "bunny_nf10k_edge_point.obj", 0.01);
+					////printf("")
+					//	for (int j = 0; j < neighs.size(); ++j) {
+					//		auto& neigh = neighs[j];
+					//		printf("right %d\n", model.Edge(neigh.first).indexOfRightVert);
+					//	}
+					angle = -1;
+				}
+			}
+			angles.push_back(angle);
+		}
+
+		vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
+		body_parts_with_angle.reserve(fixed_dests.size());
+		auto& angle_itr = angles.begin();
+		for (auto d : fixed_dests) {
+			if (*angle_itr >= 0) {
+				BodyPartOfSVGWithAngle b_with_angle(d, alg.m_InfoAtVertices[d].disUptodate, *angle_itr, 0, 0);
+				body_parts_with_angle.push_back(b_with_angle);
+			}
+			angle_itr++;
+		}
+		sort(body_parts_with_angle.begin(), body_parts_with_angle.end());
+		float angle_sum = model.AngleSum(source);
+		vector<double> tmp_angles(body_parts_with_angle.size() * 2);
+		for (int i = 0; i < body_parts_with_angle.size(); ++i) {
+			tmp_angles[i] = body_parts_with_angle[i].angle;
+		}
+		for (int i = body_parts_with_angle.size(); i < tmp_angles.size(); ++i) {
+			tmp_angles[i] = body_parts_with_angle[i - body_parts_with_angle.size()].angle + angle_sum;
+		}
+		for (int i = 0; i < body_parts_with_angle.size(); ++i) {//assume i is father
+			float father_angle = body_parts_with_angle[i].angle;
+			//based on father_angle as 0
+			float start_angle = M_PI - theta + father_angle;
+			float end_angle = angle_sum - (M_PI - theta) + father_angle;
+			if (start_angle > end_angle) {
+				body_parts_with_angle[i].begin_pos = -1;
+				body_parts_with_angle[i].end_pos = -1;
+				continue;
+			}
+
+			int start_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), start_angle) - tmp_angles.begin();
+			if (start_pos > 0) start_pos--;
+			int end_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), end_angle) - tmp_angles.begin();
+			//printf("start_angle %lf start_pos_angle %lf end_angle  %lf end_pos_angle %lf\n" , start_angle, tmp_angles[start_pos], end_angle, tmp_angles[end_pos]);
+			if (start_pos >= body_parts_with_angle.size()) start_pos -= body_parts_with_angle.size();
+			if (end_pos >= body_parts_with_angle.size()) end_pos -= body_parts_with_angle.size();
+			body_parts_with_angle[i].begin_pos = start_pos;
+			body_parts_with_angle[i].end_pos = end_pos;
+		}
+		
+		BodyHeadOfSVG body_header(source, body_parts_with_angle.size());
+		output_file.write((char*)&body_header, sizeof(body_header));
+		for (auto& b : body_parts_with_angle) {
+			output_file.write((char*)&b, sizeof(b));
+		}
+		
+
+
+		average_degree += fixed_dests.size();
+	}
+	output_file.close();
+	printf("average_degree %lf\n", average_degree / model.GetNumOfVerts());
+	time_once.printTime("ich_time");
+	double ich_time = time_once.getTime();
+	string output_filename;
+	double prune_time;
+	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	fprintf(stderr, "prunning time %lf\n", prune_time);
+	fprintf(stderr, "total_time_and_pruning %lf\n", ich_time + prune_time);
 
 
 }
@@ -1096,7 +1249,13 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
     algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
     map<int,double> fixedDests;
     algorithm->propagate_vg(sources, eps_vg, fixedDests);
-
+	if (tmp_source == 0) {
+		printf("dests: %d \n", fixedDests.size());
+		for (auto f : fixedDests) {
+			printf("%d ", f.first);
+		}
+		printf("\n");
+	}
     t_propagate += tm_propagate.getTime();
 
     ElapasedTime tm_backtrace;
@@ -1190,9 +1349,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
         }
         if (!flag_found) {
           angle = 0;
-          //printf("vertex %d source %d\n" , p.base_element()->id(), source_index);
         }
-
       } else if(p.type() == geodesic::EDGE) {
         
         //printf("edge\n");

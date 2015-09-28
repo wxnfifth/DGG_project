@@ -3,7 +3,7 @@
 #include <set>
 #include <iostream>
 #include <assert.h>
-
+#include <algorithm>
 using namespace MMP_HalfEdge;
 using namespace std;
 

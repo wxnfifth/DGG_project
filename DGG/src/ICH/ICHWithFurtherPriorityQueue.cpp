@@ -191,6 +191,7 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 	fixedDests.insert(indexOfSourceVerts.begin(), indexOfSourceVerts.end());
 	ComputeChildrenOfSource();
 	bool fFromQueueOfPseudoSources = UpdateTreeDepthBackWithChoice();
+	double d_max_current = DBL_MAX;
 	while (!m_QueueForPseudoSources.empty() || !m_QueueForWindows.empty())
 	{
 		if ((int)m_QueueForWindows.size() > nMaxLenOfWindowQueue)
@@ -206,6 +207,17 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 		{
 			QuoteWindow quoteW = m_QueueForWindows.top();
 			minCurrentDis = quoteW.disUptodate;
+			double interval_dis = GetMinDisOfWindow(*(quoteW.pWindow));
+			auto& e = model.Edge(quoteW.pWindow->indexOfCurEdge);
+			double tmp_e = 0.5 * e.length;
+			double tmp_d_max = 1e10;
+			if (interval_dis - tmp_e > 0) {
+				tmp_d_max = tmp_e * tmp_e / (2.0 * eps_vg * (interval_dis - tmp_e)) + tmp_e;
+			}
+			//printf("interval_dis %lf temp_d_max %lf \n", interval_dis, tmp_d_max);
+			d_max_current = min(d_max_current, tmp_d_max);
+			if (interval_dis > d_max_current - 1e-6) break;
+			//if ()
 		}
 
 		if (fFromQueueOfPseudoSources) //pseudosource
@@ -213,9 +225,10 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 			int indexOfVert = m_QueueForPseudoSources.top().indexOfVert;
 			m_QueueForPseudoSources.pop();
 			fixedDests.insert(indexOfVert);
-
-			if (!model.IsConvexVert(indexOfVert))
-				ComputeChildrenOfPseudoSource(indexOfVert);
+			//if (indexOfVert == indexOfSourceVerts[0]){
+			//if (!model.IsConvexVert(indexOfVert))
+			//	ComputeChildrenOfPseudoSource(indexOfVert);
+			//}
 		}
 		else
 		{
