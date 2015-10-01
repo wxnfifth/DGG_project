@@ -286,10 +286,6 @@ void printBuddhaResult()
 	computeAndOutputDistanceField(buddha_small_name, buddha_small_dgg_name, source_small, buddha_small_distance_name);
 	computeAndOutputDistanceField(buddha_middle_name, buddha_middle_dgg_name, source_middle, buddha_middle_distance_name);
 	computeAndOutputDistanceField(buddha_large_name, buddha_large_dgg_name, source_large, buddha_large_distance_name);
-
-
-
-
 }
 
 

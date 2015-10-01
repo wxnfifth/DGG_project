@@ -30,9 +30,9 @@ int main(int argc, char** argv)
       } else {
         //printf("wrong argument, usage example 'SVG_precompute.exe bunny.obj 50  h(hy's method) 10(const num)");
         //exit(1);
-        double theta = asin(sqrt(eps_vg)) / M_PI * 180;
-        double const_for_theta = 20.0 / theta;
-        fprintf(stderr,"set default theta to 20 du\n");
+        //double theta = asin(sqrt(eps_vg)) / M_PI * 180;
+        //double const_for_theta = 20.0 / theta;
+        //fprintf(stderr,"set default theta to 20 du\n");
       }
       if (method == "m") {
           if (argc == 6) {
