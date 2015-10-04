@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "add_noise", "add_noise\add_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DelaunayMesh", "DelaunayMesh\DelaunayMesh.vcxproj", "{27E57E25-32EF-469B-9611-64480AB1C665}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DGG_LC", "DGG_LC_double\DGG_LC_double.vcxproj", "{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -176,6 +178,18 @@ Global
 		{27E57E25-32EF-469B-9611-64480AB1C665}.Release|Win32.Build.0 = Release|Win32
 		{27E57E25-32EF-469B-9611-64480AB1C665}.Release|x64.ActiveCfg = Release|x64
 		{27E57E25-32EF-469B-9611-64480AB1C665}.Release|x64.Build.0 = Release|x64
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|Win32.Build.0 = Debug|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|x64.ActiveCfg = Debug|x64
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Debug|x64.Build.0 = Debug|x64
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|Win32.ActiveCfg = Release|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|Win32.Build.0 = Release|Win32
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|x64.ActiveCfg = Release|x64
+		{21BBE8B2-AD5E-4F5D-9262-47C6D018DB9A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
