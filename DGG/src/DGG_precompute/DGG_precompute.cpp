@@ -27,17 +27,11 @@ int main(int argc, char** argv)
       method = argv[3];
       if (argc >= 5) {
         const_for_theta = atoi(argv[4]);
-      } else {
-        //printf("wrong argument, usage example 'SVG_precompute.exe bunny.obj 50  h(hy's method) 10(const num)");
-        //exit(1);
-        //double theta = asin(sqrt(eps_vg)) / M_PI * 180;
-        //double const_for_theta = 20.0 / theta;
-        //fprintf(stderr,"set default theta to 20 du\n");
-      }
-      if (method == "m") {
+      } 
+      if (method == "m" || method == "im") {
           if (argc == 6) {
             thread_num = atoi(argv[5]);
-          }else{
+          } else {
             printf("must specify thread num, for example, xx.exe bunny.obj 50 m 10(const num) 4(thread_num)\n");
             exit(1);
           }
@@ -75,7 +69,7 @@ int main(int argc, char** argv)
   } else if (method == "i") {
     svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta);
   } else if (method == "im") {
-	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta);
+	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
   }
 
   return 0;

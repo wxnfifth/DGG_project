@@ -1802,7 +1802,7 @@ void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, do
 }
 
 
-void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
+void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num)
 {
 	ElapasedTime total_t;
 	double theta = asin(sqrt(eps_vg));
@@ -1811,7 +1811,6 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	CRichModel model(input_obj_name);
 	model.Preprocess();
 
-	int thread_num = 4;
 	vector<HeadOfSVG> heads;
 	vector<string> svg_part_file_names;
 	ElapasedTime time_multi;
