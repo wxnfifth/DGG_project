@@ -15,21 +15,34 @@ struct WxnBuffer{
 	char* buf;
 	int len;
 	int capacity;
-	FILE* file;
-	WxnBuffer(FILE* _file) :file(_file) {
+	ofstream output_file;
+	WxnBuffer() {
+		buf = nullptr;
+		len = 0;
+		capacity = 0;
+	}
+	WxnBuffer(const string& output_filename) {
+		output_file.open(output_filename.c_str(), ios::out | ios::binary);
 		capacity = 16 * 1024 * 1024;
 		buf = new char[capacity];
 		len = 0;
 	}
-	void addStruct(const void* ptr, int struct_size)
+	void open(const string& output_filename) {
+		output_file.open(output_filename.c_str(), ios::out | ios::binary);
+		capacity = 16 * 1024 * 1024;
+		buf = new char[capacity];
+		len = 0;
+	}
+
+	void addStruct(const void* const ptr, int struct_size)
 	{
 		//fwrite(ptr, struct_size, 1, file);
 		//return;
 		if (len + struct_size > capacity) {
-			fwrite(buf, sizeof(char), len, file);
+			//fwrite(buf, sizeof(char), len, file);
+			output_file.write(buf, len);
 			len = 0;
 		}
-
 		if (struct_size > capacity) {
 			fprintf(stderr, "str too large!");
 			exit(1);
@@ -37,22 +50,19 @@ struct WxnBuffer{
 		memcpy((void*)(buf + len), ptr, struct_size);
 		len += struct_size;
 	}
-	void addText(const char* str, int str_len) {
-		if (len + str_len > capacity) {
-			fwrite(buf, sizeof(char), len, file);
+
+	void close() {
+		if (len != 0) {
+			output_file.write(buf, len);
 			len = 0;
 		}
-		if (str_len > capacity) {
-			fprintf(stderr, "str too large!");
-			exit(1);
-		}
-		for (int i = 0; i < str_len; ++i) {
-			buf[len++] = str[i];
-		}
+		output_file.close();
 	}
 
-	~WxnBuffer(){
-		delete[] buf;
+	~WxnBuffer() {
+		if (buf != nullptr) {
+			delete[] buf;
+		}
 	}
 };
 
@@ -185,16 +195,7 @@ void svg_precompute_fix_neighbor(const string& input_obj_name, const int fixed_k
 
 }
 
-
-//#pragma pack(4)
-struct SVGEdge{
-	int v;
-//	bool deleted;
-	double dis;
-};
-
-
-
+#if 0
 void svg_precompute_jiajun_output(const string& input_obj_name, double eps_vg, string& svg_file_name)
 {
   std::vector<double> points;	
@@ -338,7 +339,7 @@ void svg_precompute_jiajun_output(const string& input_obj_name, double eps_vg, s
 
 
 }
-
+#endif
 
 void svg_precompute_jiajun(const string& input_obj_name, double eps_vg, string& svg_file_name)
 {
@@ -465,7 +466,6 @@ void svg_precompute_jiajun(const string& input_obj_name, double eps_vg, string& 
   time_once.printTime("time past ");
   output_file.close();
 }
-
 
 void svg_precompute_mmp(const string& input_obj_name, const int fixed_k, string& svg_file_name)
 {
@@ -1014,7 +1014,7 @@ void getDisAndAngles(const CRichModel& model, int source, double eps_vg, vector<
 				}
 			}
 			if (!flag_found) {
-				printf("not found vert!\n");
+				//printf("not found vert!\n");
 				angle = -1;
 			}
 		}
@@ -1045,7 +1045,7 @@ void getDisAndAngles(const CRichModel& model, int source, double eps_vg, vector<
 						angle = sum_angle[j] + acos((l * l + r * r - b * b) / (2 * l * r));
 					}
 					else{
-						fprintf(stderr, "error line 1081\n");
+						//fprintf(stderr, "error line 1081\n");
 					}
 					flag = true;
 					break;
@@ -1128,16 +1128,19 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	printf("binary filename generated\n");
 	int begin_vertex_index = 0;
 	int end_vertex_index = model.GetNumOfVerts();
-	ofstream output_file(svg_file_name.c_str(), ios::out | ios::binary);
 	int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
+
+	WxnBuffer wxn_buffer(svg_file_name);
 	HeadOfSVG head_of_svg(begin_vertex_index, end_vertex_index, num_of_vertex);
-	output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
+
+	//output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
+	wxn_buffer.addStruct(&head_of_svg, sizeof(head_of_svg));
 	ElapasedTime time_once;
 
 	double past_time;
 	double average_degree = 0;
 	for (int source = 0; source < model.GetNumOfVerts(); ++source) {
-		if (time_once.getTime() - past_time > 5) {
+	if (time_once.getTime() - past_time > 5) {
 			past_time = time_once.getTime();
 			char buf[128];
 			sprintf(buf, "Computed %.0lf percent", (double)source  * 100. / (end_vertex_index - begin_vertex_index));
@@ -1153,16 +1156,15 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 		getFanOutput(dests, angles, dis, model, theta, source, body_parts_with_angle);
 
 		BodyHeadOfSVG body_header(source, body_parts_with_angle.size());
-		output_file.write((char*)&body_header, sizeof(body_header));
+		//output_file.write((char*)&body_header, sizeof(body_header));
+		wxn_buffer.addStruct((void*)&body_header, sizeof(body_header));
 		for (auto& b : body_parts_with_angle) {
-			output_file.write((char*)&b, sizeof(b));
+			//output_file.write((char*)&b, sizeof(b));
+			wxn_buffer.addStruct((void*)&b, sizeof(b));
 		}
-		
-
-
 		average_degree += body_parts_with_angle.size();
 	}
-	output_file.close();
+	wxn_buffer.close();
 	printf("average_degree %lf\n", average_degree / model.GetNumOfVerts());
 	time_once.printTime("ich_time");
 	double ich_time = time_once.getTime();
@@ -1171,10 +1173,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_time + prune_time);
-
-
 }
-
 
 void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
 {
@@ -1481,7 +1480,6 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
 
 }
 
-
 void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
                   double theta, FILE* output_file, const CRichModel& model)
 {
@@ -1764,6 +1762,103 @@ void combinePartPrecomputeFiles(const vector<string>& part_filenames,const strin
 	output_file.close();
 }
 
+
+void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, double eps_vg, double theta, const CRichModel& model) 
+{
+	WxnBuffer wxn_buffer;
+	wxn_buffer.open(part_svg_filename);
+	wxn_buffer.addStruct(&head, sizeof(head));
+	ElapasedTime time_once;
+
+	double past_time;
+	double average_degree = 0;
+	for (int source = head.begin_vertex_index; source <= head.end_vertex_index; ++source) {
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			sprintf(buf, "Computed %.0lf percent", (double)(source - head.begin_vertex_index) * 100. / (head.end_vertex_index - head.begin_vertex_index));
+			time_once.printTime(buf);
+		}
+
+		vector<int> dests;
+		vector<double> angles;
+		vector<double> dis;
+		getDisAndAngles(model, source, eps_vg, dests, angles, dis);
+
+		vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
+		getFanOutput(dests, angles, dis, model, theta, source, body_parts_with_angle);
+
+		BodyHeadOfSVG body_header(source, body_parts_with_angle.size());
+		//output_file.write((char*)&body_header, sizeof(body_header));
+		wxn_buffer.addStruct((void*)&body_header, sizeof(body_header));
+		for (auto& b : body_parts_with_angle) {
+			//output_file.write((char*)&b, sizeof(b));
+			wxn_buffer.addStruct((void*)&b, sizeof(b));
+		}
+		average_degree += body_parts_with_angle.size();
+	}
+	wxn_buffer.close();
+
+}
+
+
+void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
+{
+	ElapasedTime total_t;
+	double theta = asin(sqrt(eps_vg));
+	theta *= const_for_theta;
+	fprintf(stderr, "******** eps %lf const %lf theta %lf du\n", eps_vg, const_for_theta, theta / M_PI * 180.0);
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+
+	int thread_num = 4;
+	vector<HeadOfSVG> heads;
+	vector<string> svg_part_file_names;
+	ElapasedTime time_multi;
+	int part_size = model.GetNumOfVerts() / thread_num;
+	for (int i = 0; i < thread_num; ++i) {
+		HeadOfSVG head;
+		head.num_of_vertex = model.GetNumOfVerts();
+		head.begin_vertex_index = i * part_size;
+		if (i != thread_num - 1) {
+			head.end_vertex_index = (i + 1)*part_size - 1;
+		}
+		else{
+			head.end_vertex_index = model.GetNumOfVerts() - 1;
+		}
+		heads.push_back(head);
+		printf("head %d %d vert_sz %d\n", head.begin_vertex_index, head.end_vertex_index, head.num_of_vertex);
+		char buf[1024];
+		sprintf(buf, "%s_DGGICH%lf_c%.0lf_part%d.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta, i);
+		svg_part_file_names.push_back((string)buf);
+	}
+
+	vector<std::thread> tt(thread_num);
+	for (int i = 0; i < thread_num; ++i) {
+		tt[i] = std::thread(&ichPropogateHead, heads[i], svg_part_file_names[i], eps_vg, theta, std::ref(model));
+	}
+	for (int i = 0; i < thread_num; ++i) {
+		tt[i].join();
+	}
+	double ich_multi_time = time_multi.getTime();
+	time_multi.printTime("ich_multi_time");
+	char buf[1024];
+	sprintf(buf, "%s_DGGICH%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
+	svg_file_name = string(buf);
+	ElapasedTime combine_time;
+	combinePartPrecomputeFiles(svg_part_file_names, svg_file_name, model.GetNumOfVerts(), thread_num);
+	combine_time.printTime("combine time");
+
+	string output_filename;
+	double prune_time;
+	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	fprintf(stderr, "prunning time %lf\n", prune_time);
+	fprintf(stderr, "total_time_and_pruning %lf\n", ich_multi_time + prune_time);
+
+
+}
+
+
 void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg, string& output_filename, double const_for_theta, int thread_num)
 {
   ElapasedTime total_t;
@@ -1836,7 +1931,6 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
 	combinePartPrecomputeFiles(svg_part_file_names, svg_file_name, model.GetNumOfVerts(), thread_num);
 	combine_time.printTime("combine time");
 
-
   double prune_time;
   JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
 
@@ -1845,7 +1939,6 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
 
 }
 
-  
   void svg_precompute_hy_new(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
 {
   double theta = asin(sqrt(eps_vg));

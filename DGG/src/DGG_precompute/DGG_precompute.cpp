@@ -17,11 +17,11 @@ int main(int argc, char** argv)
       input_file_name = argv[1];
       fixed_K = atoi(argv[2]);
       method = argv[3];
-    } else if (method == "j" || method == "y") {
+    } else if (method == "j") {
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
-    } else if (method == "h" || method == "p" || method == "d"|| method == "m" || method == "i" ) {
+	}	else if (method == "h" || method == "p" || method == "d" || method == "m" || method == "i" || method == "im") {
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 					y(jiajun's method and jiajun's output) h(hy's method) \
 					p(hy's method with prunning) \
 					d(dgg's method with prunning and fast) \
-					i(ich's method)");
+					i(ich's method) or im(ich's multithread method)");
     exit(1);
   }
 
@@ -64,9 +64,7 @@ int main(int argc, char** argv)
     svg_precompute_fix_neighbor(input_file_name, fixed_K, svg_file_name);
   } else if (method == "j") {
     svg_precompute_jiajun(input_file_name, eps_vg, svg_file_name);
-  } else if (method == "y") {
-    svg_precompute_jiajun_output(input_file_name, eps_vg, svg_file_name);
-  } else if (method == "h") {
+  }  else if (method == "h") {
     svg_precompute_hy(input_file_name, eps_vg, svg_file_name, const_for_theta);    
   } else if (method == "p") {
     svg_precompute_hy_pruning(input_file_name, eps_vg, svg_file_name, const_for_theta);
@@ -76,6 +74,8 @@ int main(int argc, char** argv)
     svg_precompute_hy_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
   } else if (method == "i") {
     svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta);
+  } else if (method == "im") {
+	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta);
   }
 
   return 0;

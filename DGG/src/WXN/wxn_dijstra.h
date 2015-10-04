@@ -17,12 +17,12 @@
 template<typename T>  class SparseGraph{
 protected:
   std::vector<std::vector<int>> graph_neighbor;
-  std::vector<std::vector<int>> graph_pos_in_neighbor;
+  std::vector<std::vector<int16_t>> graph_pos_in_neighbor;
   int node_number_;
   std::vector<std::vector<T>> graph_neighbor_dis;
   std::vector<std::vector<T>> graph_neighbor_angle;
-  std::vector<std::vector<pair<int,int>>> graph_neighbor_begin_end_pos;
-  std::vector<std::map<int,int>> graph_neighbor_map;
+  std::vector<std::vector<pair<int16_t, int16_t>>> graph_neighbor_begin_end_pos;
+  std::vector<std::map<int,int16_t>> graph_neighbor_map;
 
 public:
   SparseGraph(){
@@ -83,15 +83,15 @@ private:
     graph_neighbor_dis[u].push_back(w);
   }
 
-  void addedge_with_range(int u , int v , T w, int begin_pos , int end_pos) {
-    //u , v is the two edge
-    // w is the distance
-    assert(u < node_number_ && v < node_number_);
-    graph_neighbor[u].push_back(v);
-    graph_neighbor_dis[u].push_back(w);
-    graph_neighbor_map[u][v] = graph_neighbor_angle[u].size();
-    graph_neighbor_begin_end_pos[u].push_back(make_pair(begin_pos,end_pos));
-  }
+  //void addedge_with_range(int u , int v , T w, int begin_pos , int end_pos) {
+  //  //u , v is the two edge
+  //  // w is the distance
+  //  assert(u < node_number_ && v < node_number_);
+  //  graph_neighbor[u].push_back(v);
+  //  graph_neighbor_dis[u].push_back(w);
+  //  graph_neighbor_map[u][v] = graph_neighbor_angle[u].size();
+  //  graph_neighbor_begin_end_pos[u].push_back(make_pair(begin_pos,end_pos));
+  //}
 
   void addedge(int u , int v , T w, T angle, int begin_pos , int end_pos) {
     //u , v is the two edge
@@ -101,7 +101,7 @@ private:
     graph_neighbor_dis[u].push_back(w);
     graph_neighbor_map[u][v] = graph_neighbor_angle[u].size();
     graph_neighbor_angle[u].push_back(angle);
-    graph_neighbor_begin_end_pos[u].push_back(make_pair(begin_pos,end_pos));
+    graph_neighbor_begin_end_pos[u].push_back(make_pair(begin_pos, end_pos));
   }
 
 public:
@@ -229,7 +229,6 @@ public:
       }
       allocate_for_neighbor_with_angle(body_head.source_index , body_parts.size());
       for (int j = 0; j < body_parts.size();++j) {
-
         addedge(body_head.source_index ,
           body_parts[j].dest_index ,
           body_parts[j].dest_dis,
@@ -612,8 +611,8 @@ public:
         //T start_angle = M_PI - theta;
         //T end_angle = angle_sum - (M_PI - theta);
         //printf("******** theta %lf du\n" , theta / M_PI * 180.0);
-        int begin_pos = graph_neighbor_begin_end_pos[u][father_pos].first;
-        int end_pos = graph_neighbor_begin_end_pos[u][father_pos].second;
+        int16_t begin_pos = graph_neighbor_begin_end_pos[u][father_pos].first;
+        int16_t end_pos = graph_neighbor_begin_end_pos[u][father_pos].second;
 
         if (begin_pos == -1) continue;
         if (begin_pos <= end_pos) {

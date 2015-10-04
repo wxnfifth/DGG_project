@@ -525,21 +525,22 @@ namespace JIAJUN_DGG_PRUNING{
     }
 
 
-    void dgg_pruning(const std::string& input_file_name, double eps, std::string& output_filename, double& prune_time)
-    {
-      DGG dgg;
-      dgg.readWxnBinary(input_file_name.c_str());
-      dgg.eps = eps;
-			double average_degree_before = dgg.degree[dgg.N] / dgg.N;
-			printf("Average_degree_before %lf\n", average_degree_before);
-      ElapasedTime t;
-      dgg.pruning();
-      prune_time = t.getTime();
-			double average_degree_after = dgg.degree[dgg.N] / dgg.N;
-			printf("Average_degree_after %lf , percenter %lf\n", average_degree_after, (double)average_degree_after / average_degree_before );
-      output_filename = input_file_name.substr(0,input_file_name.length()-7) + "_pruning.binary";
-      dgg.writeSVGBinary(output_filename.c_str());
-    }
+	void dgg_pruning(const std::string& input_file_name, double eps, std::string& output_filename, double& prune_time)
+	{
+		DGG dgg;
+		dgg.readWxnBinary(input_file_name.c_str());
+		dgg.eps = eps;
+		double average_degree_before = dgg.degree[dgg.N] / dgg.N;
+		printf("Average_degree_before %lf\n", average_degree_before);
+		ElapasedTime t;
+		dgg.pruning();
+		prune_time = t.getTime();
+		double average_degree_after = dgg.degree[dgg.N] / dgg.N;
+		printf("Average_degree_after %lf , percenter %lf\n", average_degree_after, (double)average_degree_after / average_degree_before);
+		output_filename = input_file_name.substr(0, input_file_name.length() - 7) + "_pruning.binary";
+		dgg.writeSVGBinary(output_filename.c_str());
+	}
+
     void dgg_pruning_new(const std::string& input_file_name, double eps, std::string& output_filename, double& prune_time)
     {
       DGG dgg;
