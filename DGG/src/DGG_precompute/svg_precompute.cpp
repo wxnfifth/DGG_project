@@ -1123,7 +1123,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	model.Preprocess();
 
 	char buf[1024];
-	sprintf(buf, "%s_DGGICH%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
+	sprintf(buf, "%s_DGGICH%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
 	svg_file_name = string(buf);
 	printf("binary filename generated\n");
 	int begin_vertex_index = 0;
@@ -1828,7 +1828,7 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 		heads.push_back(head);
 		printf("head %d %d vert_sz %d\n", head.begin_vertex_index, head.end_vertex_index, head.num_of_vertex);
 		char buf[1024];
-		sprintf(buf, "%s_DGGICH%lf_c%.0lf_part%d.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta, i);
+		sprintf(buf, "%s_DGGICH%.10lf_c%.0lf_part%d.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta, i);
 		svg_part_file_names.push_back((string)buf);
 	}
 
