@@ -22,7 +22,7 @@ def main():
 
     for eps in eps_list:
         precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
-        svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f m %d 4  2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
+        svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f m %d 1  2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
         svg_binary_filename = os.path.join(dir_name,'%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant))
         if not os.path.isfile(svg_binary_filename):
             print svg_precompute_cmd_line
@@ -33,7 +33,7 @@ def main():
         svg_log_filename=svg_binary_filename[:-7] + '_hy.log'
         method = 'fan'
         if method == 'fan':
-            svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+            svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
         print svg_lll_cmd_line
         os.system(svg_lll_cmd_line)
         print svg_log_filename
@@ -56,8 +56,8 @@ def main():
         estimate_k = int(-2.676 * x * x * x - 45.47 * x * x - 279.9 * x - 584.6)
         print estimate_k
         low_k = estimate_k - 50
-        if low_k < 20:
-            low_k = 20
+        if low_k < 30:
+            low_k = 30
         high_k = estimate_k + 50
         while True:
             low_k_error = find_k_error(dir_name,model_name,obj_path,low_k,error_file)
@@ -83,7 +83,7 @@ def main():
                 high_k = mid_k
             else:
                 low_k = mid_k
-            if high_k - low_k <= 2:
+            if high_k - low_k <= 1:
                 break
             
 
