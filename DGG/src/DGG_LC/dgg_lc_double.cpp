@@ -127,7 +127,6 @@ int main(int argc, char** argv)
     fprintf(stderr, "d_ss %lf d_ns %lf d_nn %lf\n" , d_ss, d_ns, d_nn);
     fprintf(stderr, "num_s %d num_n %d\n" , num_s, num_n);
 #endif
-
   } else if (method == "lll") {
     s_graph = new LC_LLL<double>();
     s_graph->read_svg_file_with_angle((string)svg_file_name);//load the precomputed infomation 

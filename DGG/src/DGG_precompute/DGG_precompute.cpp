@@ -21,7 +21,7 @@ int main(int argc, char** argv)
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
-	}	else if (method == "h" || method == "p" || method == "d" || method == "m" || method == "i" || method == "im") {
+	}	else if (method == "h" || method == "p" || method == "d" || method == "m" || method == "i" || method == "im" || method == "if") {
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
@@ -70,6 +70,10 @@ int main(int argc, char** argv)
     svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta);
   } else if (method == "im") {
 	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
+  } else if (method == "if") {
+	  svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta);
+	  printf("svg_file_name %s\n", svg_file_name.c_str());
+	  svg_precompute_LiuYongjin_fixing(input_file_name, eps_vg, svg_file_name);
   }
 
   return 0;

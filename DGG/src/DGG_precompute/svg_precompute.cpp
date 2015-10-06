@@ -8,6 +8,7 @@
 #include "JIAJUN\dgg_pruning.h"
 #include "svg_definition.h"
 #include "wxn\wxn_path_helper.h"
+#include "wxn\wxn_dijstra.h"
 #include <thread>
 
 bool flag_first_output = true;
@@ -1171,6 +1172,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	string output_filename;
 	double prune_time;
 	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	svg_file_name = output_filename;
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_time + prune_time);
 }
@@ -1802,6 +1804,14 @@ void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, do
 }
 
 
+void wxn_pruning(string& svg_file_name, double eps_vg, string& test_output_filename)
+{
+
+
+
+}
+
+
 void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num)
 {
 	ElapasedTime total_t;
@@ -1851,6 +1861,8 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	string output_filename;
 	double prune_time;
 	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	string test_output_filename;
+	wxn_pruning(svg_file_name, eps_vg, test_output_filename);
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_multi_time + prune_time);
 
@@ -2097,4 +2109,18 @@ void svg_precompute_hy_fast(const string& input_obj_name, double eps_vg, string&
   t.printTime("time_past ");
 
  // fprintf(stderr,"total_time_and_pruning %lf\n" , t + prune_time);
+}
+
+
+
+
+void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name)
+{
+	SparseGraph<float>* s_graph = NULL;
+	s_graph = new LC_HY<float>();
+	s_graph->read_svg_file_with_angle((string)svg_file_name);
+	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(rich_model);
+
+
+
 }

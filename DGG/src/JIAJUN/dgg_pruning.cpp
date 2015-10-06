@@ -43,8 +43,8 @@ namespace JIAJUN_DGG_PRUNING{
     int * degree;
     SVGEdge * edge;
     SVG() : degree(NULL), edge(NULL){	}
-    ~SVG(){ if(degree != NULL) delete [] degree; if(edge != NULL) delete [] edge; }
-    SVG(const SVG & svg){
+    ~SVG() { if(degree != NULL) delete [] degree; if(edge != NULL) delete [] edge; }
+    SVG (const SVG & svg) {
       N = svg.N;
       K = svg.K;
       degree = new int[sizeof(*svg.degree) / sizeof(int)];

@@ -28,4 +28,6 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 
 void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num);
 
+void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name);
+
 #endif
