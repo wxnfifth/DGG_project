@@ -137,9 +137,11 @@
     <ClCompile Include="..\src\ICH\PreviousCH.cpp" />
     <ClCompile Include="..\src\ICH\RichModel.cpp" />
     <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp" />
+    <ClCompile Include="..\src\WXN\triangle.cpp" />
     <ClCompile Include="..\src\WXN\wxnMath.cpp" />
     <ClCompile Include="..\src\WXN\wxn_geometry.cpp" />
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
+    <ClCompile Include="..\src\WXN\wxn_triangle.cpp" />
     <ClCompile Include="figure5_main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -167,11 +169,13 @@
     <ClInclude Include="..\src\MMP\LinearQueue.h" />
     <ClInclude Include="..\src\MMP\ListGroup.h" />
     <ClInclude Include="..\src\MMP\MyList.h" />
+    <ClInclude Include="..\src\WXN\triangle.h" />
     <ClInclude Include="..\src\WXN\wxnMath.h" />
     <ClInclude Include="..\src\WXN\wxnTime.h" />
     <ClInclude Include="..\src\WXN\wxn_dijstra.h" />
     <ClInclude Include="..\src\WXN\wxn_geometry.h" />
     <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
+    <ClInclude Include="..\src\WXN\wxn_triangle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

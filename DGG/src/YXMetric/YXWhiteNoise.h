@@ -25,8 +25,8 @@ public:
 			partArea += metric->area[i];
 			ptCountOnFace[i+1] = int( (partArea / metric->totalArea * number) + 0.5 );
 			for(int j = ptCountOnFace[i]; j < ptCountOnFace[i+1]; ++j){
-				float alfa = (float)sqrt(YXGeometry::randomfloat(seed));
-				float beta = (float)YXGeometry::randomfloat(seed) ;
+				float alfa = (float)sqrt(YXGeometry::randomDouble(seed));
+				float beta = (float)YXGeometry::randomDouble(seed) ;
 				pt[j].a = 1.0 - alfa;
 				pt[j].b = alfa * (1.0 - beta);
 				pt[j].faceid = i;

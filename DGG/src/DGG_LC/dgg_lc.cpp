@@ -156,19 +156,19 @@ int main(int argc, char** argv)
   double max_dis = 0;
   for (int itr = 0; itr < iteration_times; ++itr) 
   {
-     fprintf(stderr,"itr %d\n" , itr);
+     //fprintf(stderr,"itr %d\n" , itr);
     int source_vert = uint_dist(rng);//index of source vertex
     ElapasedTime t;
     s_graph->findShortestDistance(source_vert);  //find the geodesic distance from a single source to all vertex of a mesh
     average_time += t.getTime();
-    t.printTime("time");
+    //t.printTime("time");
 
     t.start();
     vector<int> sources;
     sources.push_back(source_vert);
     CICHWithFurtherPriorityQueue ich_algorithm(rich_model,sources);
     ich_algorithm.Execute();
-    t.printTime("ich");
+    //t.printTime("ich");
     vector<double> correct_dis(s_graph->NodeNum());
     for (int i = 0; i < correct_dis.size(); ++i) {
       double d = ich_algorithm.m_InfoAtVertices[i].disUptodate;
@@ -197,8 +197,8 @@ int main(int argc, char** argv)
       average_error += error;
       erros_list.push_back(make_pair(correct_dis[i],error));
     }
-     fprintf(stderr,"________error dis percent %.2lf\n" , (double)cnt_error_dis / correct_dis.size());
-     fprintf(stderr,"cnt_finite_percent %lf average_error %.10lf\n" , cnt_finite / (double)correct_dis.size() , average_error / cnt_finite);
+     //fprintf(stderr,"________error dis percent %.2lf\n" , (double)cnt_error_dis / correct_dis.size());
+     //fprintf(stderr,"cnt_finite_percent %lf average_error %.10lf\n" , cnt_finite / (double)correct_dis.size() , average_error / cnt_finite);
   }
 
   double all_average_error;

@@ -181,6 +181,9 @@
     <ClCompile Include="..\src\WXN\wxn_geometry.cpp" />
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp" />
     <ClCompile Include="..\src\WXN\wxn_triangle.cpp" />
+    <ClCompile Include="..\src\YXMetric\PatchAnalysis.cpp" />
+    <ClCompile Include="..\src\YXMetric\YXApproxBlueNoise.cpp" />
+    <ClCompile Include="..\src\YXMetric\YXPathTracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\DGG_precompute\svg_precompute.h" />
@@ -214,6 +217,11 @@
     <ClInclude Include="..\src\WXN\wxn_geometry.h" />
     <ClInclude Include="..\src\WXN\wxn_path_helper.h" />
     <ClInclude Include="..\src\WXN\wxn_triangle.h" />
+    <ClInclude Include="..\src\YXMetric\YXApproxBlueNoise.h" />
+    <ClInclude Include="..\src\YXMetric\YXMetric.h" />
+    <ClInclude Include="..\src\YXMetric\YXPathTracer.h" />
+    <ClInclude Include="..\src\YXMetric\YXSimpleHashMap.h" />
+    <ClInclude Include="..\src\YXMetric\YXWhiteNoise.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

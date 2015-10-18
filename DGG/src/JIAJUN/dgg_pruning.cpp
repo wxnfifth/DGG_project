@@ -28,6 +28,7 @@ namespace JIAJUN_DGG_PRUNING{
     int v;
     bool deleted;
     double dis;
+	double angle;
     short int begin_pos;
     short int end_pos;
     short int pos;
@@ -128,6 +129,7 @@ namespace JIAJUN_DGG_PRUNING{
           edge[j].begin_pos = body_part.begin_pos;
           edge[j].end_pos = body_part.end_pos;
           edge[j].pos = j - degree[i];
+		  edge[j].angle = body_part.angle;
         }
       }
     }
@@ -198,7 +200,6 @@ namespace JIAJUN_DGG_PRUNING{
       bool operator()(node a, node b){ return a.dis > b.dis; }
     };
     std::priority_queue <node, std::vector<node>, CMP > q;
-
     dis[src] = 0;
     mark[src] = 1;
     std::map<int, int> nodeMap;
@@ -214,11 +215,21 @@ namespace JIAJUN_DGG_PRUNING{
       cnt++;
       q.pop();
       if(mark[a.v])continue;
+	  if (src == 0) {
+			  printf("u %d ", a.v);
+	  }
       bool found = 0;
       for(int i = dgg.degree[a.v]; i < dgg.degree[a.v + 1]; ++i){
+		  //if (src == 0 && dgg.edge[i].v == 205) {
+			 // printf("u %d v %d d %lf\n", a.v, dgg.edge[i].v , dis[dgg.  );
+		  //}
+
         if(abs(dis[dgg.edge[i].v] - maxDist) < maxError || a.v == dgg.edge[i].v) continue;
         if(a.dis + dgg.edge[i].dis < dis[dgg.edge[i].v] * (1 + eps)){
-          node b;
+			if (src == 0) {
+				printf("v %d\n", dgg.edge[i].v);
+			}
+			node b;
           b.v = dgg.edge[i].v;
           
           b.dis = min((double)a.dis + (double)dgg.edge[i].dis, dis[dgg.edge[i].v] );
@@ -250,7 +261,11 @@ namespace JIAJUN_DGG_PRUNING{
         }
         mark[a.v] = 1;
       }
-      //fprintf(stderr,"cnt %d\n" , cnt);
+	  if (src == 0)
+	  {
+		  printf("cnt %d\n", cnt);
+	  }
+		  //fprintf(stderr,"cnt %d\n" , cnt);
       for (int i = dgg.degree[src]; i != dgg.degree[src + 1]; ++i)
       {
         dis[dgg.edge[i].v] = maxDist;
@@ -295,7 +310,7 @@ namespace JIAJUN_DGG_PRUNING{
 
         for (int j = degree[source_index]; j < degree[source_index+1]; j++) {
           BodyPartOfSVGWithAngle b;
-          b.angle = 0;
+          b.angle = edge[j].angle;
           if (edge[j].begin_pos == -1) {
             b.begin_pos = -1;
             b.end_pos = -1;

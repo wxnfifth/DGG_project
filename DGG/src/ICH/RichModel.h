@@ -505,7 +505,7 @@ int CRichModel::GetNeighborFaceIndexFromFace(int face_index,int sub_index)const
 int CRichModel::GetEdgeIndexFromTwoVertices(int leftVert, int rightVert) const
 {
 	int subIndex = GetSubindexToVert(leftVert, rightVert);
-	assert (subIndex != -1);
+	assert(subIndex != -1);
 	return Neigh(leftVert)[subIndex].first;
 }
 

@@ -7,8 +7,10 @@
 #include "MMP\geodesic_algorithm_vg_mmp.h"
 #include "JIAJUN\dgg_pruning.h"
 #include "svg_definition.h"
+#include "wxn\wxnMath.h"
 #include "wxn\wxn_path_helper.h"
 #include "wxn\wxn_dijstra.h"
+#include "YXMetric\YXPathTracer.h"
 #include <thread>
 
 bool flag_first_output = true;
@@ -1803,9 +1805,225 @@ void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, do
 
 }
 
+const double JiajunMaxDist(1e5);
 
-void wxn_pruning(string& svg_file_name, double eps_vg, string& test_output_filename)
+template <class T>
+void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
+	const vector<vector<T>>& graph_neighbor_dis,
+	 vector<vector<bool>>& graph_neighbor_deleted,
+	int src, double eps_vg, vector<T>& dis,
+	vector<bool>& mark)
 {
+	const double max_error = 1e-5;
+	struct QueueNode{
+		T dis;
+		int node_index;
+		QueueNode(){}
+		QueueNode(int _node_index, double _dis) {
+			dis = _dis;
+			node_index = _node_index;
+		}
+		bool operator<(const QueueNode& other)const{
+			return dis > other.dis;
+		}
+	};
+	priority_queue<QueueNode> que;
+	dis[src] = 0;
+	mark[src] = true;
+	//printf("line 1834\n");
+	map<int, int> node_map;
+	//printf("sz %d\n", graph_neighbor[src].size());
+	for (int i = 0; i < graph_neighbor[src].size(); ++i) {
+		int v = graph_neighbor[src][i];
+		//printf("src %d i %d v %d ", src, i, v);
+		T d = graph_neighbor_dis[src][i];
+		//printf("d %lf\n", d);
+		dis[v] = d;
+		que.push(QueueNode(v, d));
+		//printf("line 1844\n");
+		node_map[v] = i;
+		//printf("line 1845\n");
+	}
+	//printf("line 1842\n");
+	int cnt = 0;
+	while (!que.empty()) {
+		QueueNode u = que.top();
+		cnt++;
+		que.pop();
+		if (mark[u.node_index]) continue;
+		if (src == 0) {
+			//if (cnt < 4) {
+				printf("u %d ", u.node_index);
+			//}
+		}
+		mark[u.node_index] = true;
+		bool found_flag = false;
+		for (int i = 0; i < graph_neighbor[u.node_index].size(); ++i) {
+			int v = graph_neighbor[u.node_index][i];
+			T d = graph_neighbor_dis[u.node_index][i];
+			//if (src == 0 && v == 205) {
+			//	printf("u %d v %d d %lf\n", u.node_index, v, d);
+			//}
+			if (fabs(dis[v] - JiajunMaxDist) < max_error || u.node_index == v) {
+				continue;
+			}
+			if (u.dis + d < dis[v] * (1 + eps_vg)) {
+				if (src == 0 ) {
+					printf("v %d\n", v);
+				}
+				QueueNode b;
+				b.node_index = v;
+				b.dis = min(u.dis + d, dis[v]);
+				dis[v] = b.dis;
+				graph_neighbor_deleted[src][node_map[v]] = true;
+				que.push(b);
+			}
+		}
+	}
+	if (src == 0) {
+		printf("cnt %d\n", cnt);
+	}
+	//printf("cnt %d\n", cnt);
+	for (int v : graph_neighbor[src]) {
+		dis[v] = JiajunMaxDist;
+		mark[v] = false;
+	}
+	dis[src] = JiajunMaxDist;
+	mark[src] = false;
+}
+
+
+template<class T>
+void readInputFile(const string& svg_file_name,
+			  vector<vector<int>>& graph_neighbor,
+			  vector<vector<T>>& graph_neighbor_dis,	
+			  vector<vector<bool>>& graph_neighbor_deleted,
+			  int& node_number)
+{
+
+	std::ifstream input_file(svg_file_name, std::ios::in | std::ios::binary);
+	HeadOfSVG head_of_svg;
+	input_file.read((char*)&head_of_svg, sizeof(head_of_svg));
+	head_of_svg.print();
+	node_number = head_of_svg.num_of_vertex;
+	graph_neighbor.reserve(node_number);
+	graph_neighbor.resize(node_number);
+	graph_neighbor_dis.reserve(node_number);
+	graph_neighbor_dis.resize(node_number);
+	graph_neighbor_deleted.reserve(node_number);
+	graph_neighbor_deleted.resize(node_number);
+
+	for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
+		BodyHeadOfSVG body_head;
+		input_file.read((char*)&body_head, sizeof(body_head));
+		std::vector<BodyPartOfSVGWithAngle> body_parts;
+		for (int j = 0; j < body_head.neighbor_num; ++j) {
+			BodyPartOfSVGWithAngle body_part;
+			input_file.read((char*)&body_part, sizeof(body_part));
+			body_parts.push_back(body_part);
+		}
+		int u = body_head.source_index;
+		int number_of_neighbor = body_parts.size();
+		graph_neighbor[u].reserve(number_of_neighbor);
+		graph_neighbor_dis[u].reserve(number_of_neighbor);
+		graph_neighbor_deleted[u].reserve(number_of_neighbor);
+		for (auto body : body_parts) {
+			graph_neighbor[u].push_back(body.dest_index);
+			graph_neighbor_dis[u].push_back(body.dest_dis);
+			graph_neighbor_deleted[u].push_back(false);
+		}
+		if (i > 0 && i % (head_of_svg.num_of_vertex / 10) == 0){
+			std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
+		}
+	}
+
+	input_file.close();
+
+
+}
+
+template<class T> 
+void wxn_pruning(const string& svg_file_name, double eps_vg, string& test_output_filename)
+{
+	vector<vector<int>> graph_neighbor;
+	vector<vector<T>> graph_neighbor_dis;
+	vector<vector<bool>> graph_neighbor_deleted;
+	int node_number;
+
+	readInputFile(svg_file_name, graph_neighbor, graph_neighbor_dis, graph_neighbor_deleted, node_number);
+
+	printf("line 1934\n");
+	{
+		vector<T> dis(node_number);
+		vector<bool> mark(node_number);
+		fill(dis.begin(), dis.end(), JiajunMaxDist);
+		fill(mark.begin(), mark.end(), false);
+		for (int i = 0; i < node_number; ++i) {
+			//printf("i%d\n" , i);
+			dijkstra_pruning<T>(graph_neighbor, 
+				graph_neighbor_dis, graph_neighbor_deleted, i,
+				eps_vg,  dis, mark);
+		}
+	}
+	printf("line 1946\n");
+
+	std::ifstream input_file(svg_file_name, std::ios::in | std::ios::binary);
+	HeadOfSVG head_of_svg;
+	input_file.read((char*)&head_of_svg, sizeof(head_of_svg));
+	head_of_svg.print();
+	
+	ofstream output_file(test_output_filename, std::ios::out | std::ios::binary);
+	output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
+
+	int cnt = 0;
+	for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
+		BodyHeadOfSVG body_head;
+		input_file.read((char*)&body_head, sizeof(body_head));
+		vector<int> new_graph_neighbor;
+		vector<T> new_graph_neighbor_dis;
+		vector<int> origin2current(body_head.neighbor_num, -1);
+		for (int j = 0; j < body_head.neighbor_num; ++j) {
+			if (!graph_neighbor_deleted[i][j]) {
+				cnt++;
+				origin2current[j] = new_graph_neighbor.size();
+				new_graph_neighbor.push_back(graph_neighbor[i][j]);
+				new_graph_neighbor_dis.push_back(graph_neighbor_dis[i][j]);
+			}
+		}
+		int start_pos = 0;
+		for (int j = 0; j < origin2current.size(); ++j) {
+			if (origin2current[j] == -1) {
+				origin2current[j] = start_pos;
+			}
+			else{
+				start_pos = origin2current[j];
+			}
+		}
+		vector<BodyPartOfSVGWithAngle> body_parts;
+		for (int j = 0; j < body_head.neighbor_num; ++j){
+			BodyPartOfSVGWithAngle b;
+			input_file.read((char*)&b, sizeof(b));
+			body_parts.push_back(b);
+		}
+		body_head.neighbor_num = new_graph_neighbor.size();
+		output_file.write((char*)&body_head, sizeof(body_head));
+		for (int j = 0; j < body_parts.size(); ++j) {
+			if (!graph_neighbor_deleted[i][j]) {
+				BodyPartOfSVGWithAngle b = body_parts[j];
+				if (b.begin_pos == -1) {
+					b.begin_pos = -1;
+					b.end_pos = -1;
+				} else {
+					b.begin_pos = origin2current[b.begin_pos];
+					b.end_pos = origin2current[b.end_pos];
+				}
+				output_file.write((char*)&b, sizeof(b));
+			}
+		}
+	}
+	printf("average neigh %lf\n", (double)cnt / node_number);
+	input_file.close();
+	output_file.close();
 
 
 
@@ -1861,8 +2079,10 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	string output_filename;
 	double prune_time;
 	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
-	string test_output_filename;
-	wxn_pruning(svg_file_name, eps_vg, test_output_filename);
+	string wxn_output_filename(svg_file_name.substr(0, svg_file_name.length() - 4) + "_wxn_pruning.binary");
+		ElapasedTime wxn_pruning_time;
+		wxn_pruning<double>(svg_file_name, eps_vg, wxn_output_filename);
+		wxn_pruning_time.printTime("wxn pruning time"); 
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_multi_time + prune_time);
 
@@ -2113,14 +2333,155 @@ void svg_precompute_hy_fast(const string& input_obj_name, double eps_vg, string&
 
 
 
+void findPointUsingPathTracer(const CRichModel& model, const int source_vert, 
+							  const int direction_edge,	const double dis,
+							  const double angle, YXPathTracer& path_tracer,
+							  CPoint3D& p, int& v0_id, int& v1_id)
+{
+	const auto& e = model.Edge(direction_edge);
+	int v1 = e.indexOfLeftVert;
+	int v2 = e.indexOfRightVert;
+	int e_id_yx = path_tracer.metric.getEdgeFrom2Verts(v1, v2);
+	YXPath tmp_path;
+	path_tracer.computeSinglePathArbitraryStart(e_id_yx, angle, dis, tmp_path, source_vert);
+	//center_3d = CenterPoint(path_tracer.convertToYXPoint3D(tmp_path.back()).toCPoint3D());
+	p = path_tracer.convertToYXPoint3D(tmp_path.back()).toCPoint3D();
+	path_tracer.convertToYXPoint3D(tmp_path.back(), v0_id, v1_id);
+}
+
+
+void getPointOnEdge(const vector<double>& sum_angle, double angle, const CRichModel& model,
+					const vector<pair<int, double>>& neighs , int source_vert,
+					CPoint3D& p, int& v0_id, int& v1_id)
+{
+	auto it = lower_bound(sum_angle.begin(), sum_angle.end(), angle);
+	it = prev(it);
+	int pos_in_neigh = it - sum_angle.begin();
+	//vert pos_in_neigh and pos_in_neigh + 1
+	v0_id = model.Edge(neighs[pos_in_neigh].first).indexOfRightVert;
+	v1_id = model.Edge(neighs[(pos_in_neigh + 1) % neighs.size()].first).indexOfRightVert;
+	auto& v0 = model.Vert(v0_id);
+	auto& v1 = model.Vert(v1_id);
+	auto& o = model.Vert(source_vert);
+	double l = (v0 - v1).Len();
+	double r = (v0 - o).Len();
+	double b = (v1 - o).Len();
+	double alpha = acos((l * l + r * r - b * b) / (2 * l * r));
+	double theta = angle - *it;
+	double l2 = r / sin(M_PI - theta - alpha) * sin(theta);
+	p = v0 * (1 - l2 / l) + v1 * l2 / l;
+}
+
+//auto it = lower_bound(sum_angle.begin(), sum_angle.end(), divide_angles[k]);
+//it = prev(it);
+//int pos_in_neigh = it - sum_angle.begin();
+////vert pos_in_neigh and pos_in_neigh + 1
+//int v0_id = model.Edge(neighs[pos_in_neigh].first).indexOfRightVert;
+//int v1_id = model.Edge(neighs[(pos_in_neigh + 1) % neighs.size()].first).indexOfRightVert;
+//auto& v0 = model.Vert(v0_id);
+//auto& v1 = model.Vert(v1_id);
+//auto& o = model.Vert(i);
+//double l = (v0 - v1).Len();
+//double r = (v0 - o).Len();
+//double b = (v1 - o).Len();
+//double alpha = acos((l * l + r * r - b * b) / (2 * l * r));
+//double theta = divide_angles[k] - *it;
+//double l2 = r / sin(M_PI - theta - alpha) * sin(theta);
+//CPoint3D p = v0 * (1 - l2 / l) + v1 * l2 / l;
+
 
 void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name)
 {
 	SparseGraph<float>* s_graph = NULL;
 	s_graph = new LC_HY<float>();
 	s_graph->read_svg_file_with_angle((string)svg_file_name);
-	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(rich_model);
+	CRichModel model(input_file_name);
+	model.Preprocess();
 
+	YXPathTracer path_tracer;
+	printf("model_file_name %s\n", input_file_name.c_str());
+	path_tracer.init(input_file_name.c_str());
+
+	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
+	int cnt = 0;
+	int percent[20] = { 0 };
+	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		auto& angles = s_graph->graph_neighbor_angle[i];
+		vector<double> angles_diff(angles.size());
+		bool flag = false;
+		for (int j = 0; j < angles.size() - 1; ++j) {
+			angles_diff[j] = angles[j + 1] - angles[j];
+			//printf("a%lf ", angles[j]);
+			if (angles_diff[j] >=  2 * 2 * M_PI / angles.size()) {
+				//printf("%lf ", angles_diff[j] / (2 * M_PI / angles.size()));
+				int pos_in_percent = int(angles_diff[j] / (2 * M_PI / angles.size()));
+				percent[pos_in_percent]++;
+				flag = true;
+				cnt++;
+			}
+		}
+		//printf("\n");
+		if (flag) {
+			//cnt++;
+			//printf("\n");
+		}
+	}
+	printf("cnt %d total %d \n", cnt, model.GetNumOfVerts());
+	for (int i = 0; i <= 10; ++i) {
+		printf("%9d ", i);
+	}
+	printf("\n");
+	for (int i = 0; i <= 10; ++i) {
+		printf("%.7lf ", percent[i] / (double)cnt);
+	}
+	printf("\n");
+
+	vector<int> origin_of_new_faces;
+	ModelForSubdivide sub_model(model, origin_of_new_faces);
+	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		auto& geo_dises = s_graph->graphNeighborDis(i);
+		auto& angles = s_graph->graph_neighbor_angle[i];
+		auto& neighs = model.Neigh(i);
+		vector<double> sum_angle(neighs.size() + 1);
+		sum_angle[0] = 0;
+		for (int j = 1; j < sum_angle.size(); ++j) {
+			sum_angle[j] = sum_angle[j - 1] + neighs[j - 1].second;
+		}
+		
+		for (int j = 0; j < angles.size(); ++j) {
+			double angles_diff{ 0 };
+			double dis{ 0 };
+			if (j != angles.size() - 1) {
+				angles_diff = angles[j + 1] - angles[j];
+				dis = (geo_dises[j] + geo_dises[j + 1]) / 2;
+			} else {
+				angles_diff = sum_angle.back() - angles[j];
+				dis = (geo_dises[j] + geo_dises[0]) / 2;
+			}
+			int pos_in_percent = int(angles_diff / (2 * M_PI / angles.size()));
+			if (pos_in_percent >= 2) {
+				vector<double> divide_angles(pos_in_percent - 1);
+				for (int k = 0; k < divide_angles.size(); ++k) {
+					divide_angles[k] = angles[j] + (double)(k + 1) / (double)pos_in_percent * angles_diff;
+					CPoint3D p;
+					int v0_id, v1_id;
+					//getPointOnEdge(sum_angle, divide_angles[k], model, neighs, i, p , v0_id, v1_id);
+					
+					findPointUsingPathTracer(model, i, neighs[0].first, dis,
+											 divide_angles[k], path_tracer, p, v0_id,
+											 v1_id);
+					int edge_id = model.GetEdgeIndexFromTwoVertices(v0_id, v1_id);
+					if (edge_id < 0) {
+						printf("edge_id %d\n", edge_id);
+					}
+					sub_model.addVertexOnEdge(p, model.Edge(edge_id).indexOfSimpleEdge);
+				}
+			}
+		}
+	}
+
+	sub_model.subdivide();
+	sub_model.WriteToFile("fertility_nf10k_ani2_lyj.obj");
 
 
 }

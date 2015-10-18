@@ -72,6 +72,12 @@
     <ClCompile Include="figure_pruning_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\WXN\triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\wxn_triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ICH\BaseModel.h">
@@ -156,6 +162,12 @@
       <Filter>WXN</Filter>
     </ClInclude>
     <ClInclude Include="..\src\WXN\wxn_path_helper.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\triangle.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_triangle.h">
       <Filter>WXN</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,6 +25,9 @@
     <Filter Include="WXN">
       <UniqueIdentifier>{7f100d80-4b53-45a7-8c2f-52873400b69b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="YXMetric">
+      <UniqueIdentifier>{e21932a0-4c10-446d-87f6-7d5ccd7c027d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\DGG_precompute\DGG_precompute.cpp">
@@ -74,6 +77,15 @@
     </ClCompile>
     <ClCompile Include="..\src\WXN\wxn_triangle.cpp">
       <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\YXMetric\YXPathTracer.cpp">
+      <Filter>YXMetric</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\YXMetric\PatchAnalysis.cpp">
+      <Filter>YXMetric</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\YXMetric\YXApproxBlueNoise.cpp">
+      <Filter>YXMetric</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +181,21 @@
     </ClInclude>
     <ClInclude Include="..\src\WXN\wxn_triangle.h">
       <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YXMetric\YXPathTracer.h">
+      <Filter>YXMetric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YXMetric\YXSimpleHashMap.h">
+      <Filter>YXMetric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YXMetric\YXWhiteNoise.h">
+      <Filter>YXMetric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YXMetric\YXApproxBlueNoise.h">
+      <Filter>YXMetric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YXMetric\YXMetric.h">
+      <Filter>YXMetric</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

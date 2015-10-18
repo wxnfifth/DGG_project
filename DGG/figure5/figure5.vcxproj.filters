@@ -72,6 +72,12 @@
     <ClCompile Include="..\src\WXN\wxn_path_helper.cpp">
       <Filter>WXN</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\WXN\wxn_triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WXN\triangle.cpp">
+      <Filter>WXN</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ICH\BaseModel.h">
@@ -160,6 +166,12 @@
     </ClInclude>
     <ClInclude Include="..\src\MMP\geodesic_algorithm_exact.h">
       <Filter>MMP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\triangle.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WXN\wxn_triangle.h">
+      <Filter>WXN</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

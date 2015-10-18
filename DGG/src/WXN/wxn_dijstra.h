@@ -20,7 +20,7 @@ protected:
   std::vector<std::vector<int16_t>> graph_pos_in_neighbor;
   int node_number_;
   std::vector<std::vector<T>> graph_neighbor_dis;
-  std::vector<std::vector<T>> graph_neighbor_angle;
+  //std::vector<std::vector<T>> graph_neighbor_angle;
   std::vector<std::vector<pair<int16_t, int16_t>>> graph_neighbor_begin_end_pos;
   std::vector<std::map<int,int16_t>> graph_neighbor_map;
 
@@ -35,7 +35,10 @@ public:
   const std::vector<T>& graphNeighborDis(int v) {
 	  return graph_neighbor_dis[v];
   }
-
+  std::vector<std::vector<T>> graph_neighbor_angle;
+  const std::vector<T>& graphNeighborAngle(int v) {
+	  return graph_neighbor_angle[v];
+  }
 private:
 
   void initialize(int _node_number) {
@@ -82,16 +85,6 @@ private:
     graph_neighbor[u].push_back(v);
     graph_neighbor_dis[u].push_back(w);
   }
-
-  //void addedge_with_range(int u , int v , T w, int begin_pos , int end_pos) {
-  //  //u , v is the two edge
-  //  // w is the distance
-  //  assert(u < node_number_ && v < node_number_);
-  //  graph_neighbor[u].push_back(v);
-  //  graph_neighbor_dis[u].push_back(w);
-  //  graph_neighbor_map[u][v] = graph_neighbor_angle[u].size();
-  //  graph_neighbor_begin_end_pos[u].push_back(make_pair(begin_pos,end_pos));
-  //}
 
   void addedge(int u , int v , T w, T angle, int begin_pos , int end_pos) {
     //u , v is the two edge
