@@ -592,8 +592,6 @@ void svg_precompute_mmp(const string& input_obj_name, const int fixed_k, string&
     }
   }
 
-
-
     time_once.printTime("time past ");
   
     output_file.close();
@@ -1810,10 +1808,14 @@ const double JiajunMaxDist(1e5);
 template <class T>
 void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
 	const vector<vector<T>>& graph_neighbor_dis,
-	 vector<vector<bool>>& graph_neighbor_deleted,
-	int src, double eps_vg, vector<T>& dis,
-	vector<bool>& mark)
+	vector<bool>& current_graph_neighbor_deleted,
+	int src, double eps_vg, vector<T>& dis, vector<bool>& mark)
 {
+	//int node_number = graph_neighbor.size();
+	//vector<T> dis(node_number);
+	//vector<bool> mark(node_number);
+	//fill(dis.begin(), dis.end(), JiajunMaxDist);
+	//fill(mark.begin(), mark.end(), false);
 	const double max_error = 1e-5;
 	struct QueueNode{
 		T dis;
@@ -1853,7 +1855,7 @@ void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
 		if (mark[u.node_index]) continue;
 		if (src == 0) {
 			//if (cnt < 4) {
-				printf("u %d ", u.node_index);
+				//printf("u %d ", u.node_index);
 			//}
 		}
 		mark[u.node_index] = true;
@@ -1869,13 +1871,13 @@ void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
 			}
 			if (u.dis + d < dis[v] * (1 + eps_vg)) {
 				if (src == 0 ) {
-					printf("v %d\n", v);
+					//printf("v %d\n", v);
 				}
 				QueueNode b;
 				b.node_index = v;
 				b.dis = min(u.dis + d, dis[v]);
 				dis[v] = b.dis;
-				graph_neighbor_deleted[src][node_map[v]] = true;
+				current_graph_neighbor_deleted[node_map[v]] = true;
 				que.push(b);
 			}
 		}
@@ -1932,9 +1934,9 @@ void readInputFile(const string& svg_file_name,
 			graph_neighbor_dis[u].push_back(body.dest_dis);
 			graph_neighbor_deleted[u].push_back(false);
 		}
-		if (i > 0 && i % (head_of_svg.num_of_vertex / 10) == 0){
-			std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
-		}
+		//if (i > 0 && i % (head_of_svg.num_of_vertex / 10) == 0){
+		//	std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
+		//}
 	}
 
 	input_file.close();
@@ -1942,8 +1944,42 @@ void readInputFile(const string& svg_file_name,
 
 }
 
+
+void test(vector<int>& a, int thread_id)
+{
+	a[thread_id] = thread_id;
+	
+}
+
+template<class T>
+void dijkstraPruningThread(int thread_id, int thread_num, int node_number, 
+						   const vector<vector<int>>& graph_neighbor,
+						   const vector<vector<T>>& graph_neighbor_dis,
+						   vector<vector<bool>>& graph_neighbor_deleted, double eps_vg)
+{
+	vector<T> dis(node_number);
+	vector<bool> mark(node_number);
+	fill(dis.begin(), dis.end(), JiajunMaxDist);
+	fill(mark.begin(), mark.end(), false);
+	int part_size = node_number / thread_num;
+	int begin = thread_id * part_size;
+	int end;
+	if (thread_id != thread_num - 1) {
+		end = (thread_id + 1) * part_size - 1;
+	}
+	else {
+		end = node_number - 1;
+	}
+
+	for (int i = begin; i <= end; ++i) {
+		dijkstra_pruning<T>(graph_neighbor, 
+		graph_neighbor_dis, graph_neighbor_deleted[i], i,
+		eps_vg, dis, mark);
+	}
+}
+
 template<class T> 
-void wxn_pruning(const string& svg_file_name, double eps_vg, string& test_output_filename)
+void wxn_pruning(const string& svg_file_name, double eps_vg, string& test_output_filename, int thread_num, double& prune_time)
 {
 	vector<vector<int>> graph_neighbor;
 	vector<vector<T>> graph_neighbor_dis;
@@ -1952,21 +1988,24 @@ void wxn_pruning(const string& svg_file_name, double eps_vg, string& test_output
 
 	readInputFile(svg_file_name, graph_neighbor, graph_neighbor_dis, graph_neighbor_deleted, node_number);
 
-	printf("line 1934\n");
+	ElapasedTime t;
 	{
-		vector<T> dis(node_number);
-		vector<bool> mark(node_number);
-		fill(dis.begin(), dis.end(), JiajunMaxDist);
-		fill(mark.begin(), mark.end(), false);
-		for (int i = 0; i < node_number; ++i) {
-			//printf("i%d\n" , i);
-			dijkstra_pruning<T>(graph_neighbor, 
-				graph_neighbor_dis, graph_neighbor_deleted, i,
-				eps_vg,  dis, mark);
-		}
-	}
-	printf("line 1946\n");
+		int part_size = node_number / thread_num;
+		vector<std::thread> tt(thread_num);
+		for (int thread_id = 0; thread_id < thread_num; ++thread_id) {
+			tt[thread_id] = std::thread(&dijkstraPruningThread<T>, thread_id,
+										thread_num, node_number, ref(graph_neighbor),
+										ref(graph_neighbor_dis), ref(graph_neighbor_deleted),
+										eps_vg);
 
+		}
+		for (int i = 0; i < thread_num; ++i) {
+			tt[i].join();
+		}
+
+	}
+	t.printTime();
+	prune_time = t.getTime();
 	std::ifstream input_file(svg_file_name, std::ios::in | std::ios::binary);
 	HeadOfSVG head_of_svg;
 	input_file.read((char*)&head_of_svg, sizeof(head_of_svg));
@@ -2076,13 +2115,14 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	combinePartPrecomputeFiles(svg_part_file_names, svg_file_name, model.GetNumOfVerts(), thread_num);
 	combine_time.printTime("combine time");
 
-	string output_filename;
+	//string output_filename;
+	//double prune_time;
+	//JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	string wxn_output_filename(svg_file_name.substr(0, svg_file_name.length() - 7) + "_pruning.binary");
 	double prune_time;
-	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
-	string wxn_output_filename(svg_file_name.substr(0, svg_file_name.length() - 4) + "_wxn_pruning.binary");
-		ElapasedTime wxn_pruning_time;
-		wxn_pruning<double>(svg_file_name, eps_vg, wxn_output_filename);
-		wxn_pruning_time.printTime("wxn pruning time"); 
+	ElapasedTime wxn_pruning_time;
+	wxn_pruning<double>(svg_file_name, eps_vg, wxn_output_filename, thread_num, prune_time);
+	wxn_pruning_time.printTime("wxn pruning time");
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_multi_time + prune_time);
 

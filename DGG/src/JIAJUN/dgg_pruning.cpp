@@ -215,9 +215,9 @@ namespace JIAJUN_DGG_PRUNING{
       cnt++;
       q.pop();
       if(mark[a.v])continue;
-	  if (src == 0) {
-			  printf("u %d ", a.v);
-	  }
+	  //if (src == 0) {
+			//  printf("u %d ", a.v);
+	  //}
       bool found = 0;
       for(int i = dgg.degree[a.v]; i < dgg.degree[a.v + 1]; ++i){
 		  //if (src == 0 && dgg.edge[i].v == 205) {
@@ -226,9 +226,9 @@ namespace JIAJUN_DGG_PRUNING{
 
         if(abs(dis[dgg.edge[i].v] - maxDist) < maxError || a.v == dgg.edge[i].v) continue;
         if(a.dis + dgg.edge[i].dis < dis[dgg.edge[i].v] * (1 + eps)){
-			if (src == 0) {
-				printf("v %d\n", dgg.edge[i].v);
-			}
+			//if (src == 0) {
+			//	printf("v %d\n", dgg.edge[i].v);
+			//}
 			node b;
           b.v = dgg.edge[i].v;
           
