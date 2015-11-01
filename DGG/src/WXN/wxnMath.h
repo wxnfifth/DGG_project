@@ -663,13 +663,13 @@ public:
 				triangle_list[j][2] = input_point_index[triangle_list[j][2]];
 				if (triangle_list[j][0] < 0 || triangle_list[j][1] < 0 || triangle_list[j][2] < 0 || 
 					triangle_list[j][0] > 100000 || triangle_list[j][1] > 100000 || triangle_list[j][2] > 100000) {
-					printf("sz%d szoutput_point_list %d input_point_list_2D%d ", input_point_index.size(), output_point_list.size(), input_point_list_2D.size());
-					for (auto p : input_point_index) {
-						printf(" %d", p);
-					}
-					printf("\n");
-					printf("inx %d %d %d\n", a, b, c);
-					printf("%d %d %d\n", triangle_list[j][0], triangle_list[j][1], triangle_list[j][2]);
+					//printf("sz%d szoutput_point_list %d input_point_list_2D%d ", input_point_index.size(), output_point_list.size(), input_point_list_2D.size());
+					//for (auto p : input_point_index) {
+					//	printf(" %d", p);
+					//}
+					//printf("\n");
+					//printf("inx %d %d %d\n", a, b, c);
+					//printf("%d %d %d\n", triangle_list[j][0], triangle_list[j][1], triangle_list[j][2]);
 				}
 			}
 			face_list_[face_index] = triangle_list[0];

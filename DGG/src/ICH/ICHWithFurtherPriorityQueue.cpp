@@ -189,11 +189,14 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 {
 	fixedDests.clear();
 	fixedDests.insert(indexOfSourceVerts.begin(), indexOfSourceVerts.end());
+	numDirectWindow = 0;
 	ComputeChildrenOfSource();
 	bool fFromQueueOfPseudoSources = UpdateTreeDepthBackWithChoice();
 	double d_max_current = DBL_MAX;
 	while (!m_QueueForPseudoSources.empty() || !m_QueueForWindows.empty())
 	{
+
+		if (numDirectWindow <= 0)break; // for SVG
 		if ((int)m_QueueForWindows.size() > nMaxLenOfWindowQueue)
 			nMaxLenOfWindowQueue = (int)m_QueueForWindows.size();
 		if (m_QueueForPseudoSources.size() > nMaxLenOfPseudoSources)
@@ -208,6 +211,8 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 			QuoteWindow quoteW = m_QueueForWindows.top();
 			minCurrentDis = quoteW.disUptodate;
 			double interval_dis = GetMinDisOfWindow(*(quoteW.pWindow));
+			double dis = quoteW.pWindow->disToRoot;
+			//printf("interval_dis - dis %.10lf\n", (interval_dis - dis));
 			auto& e = model.Edge(quoteW.pWindow->indexOfCurEdge);
 			double tmp_e = 0.5 * e.length;
 			double tmp_d_max = 1e10;
@@ -224,7 +229,9 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 		{
 			int indexOfVert = m_QueueForPseudoSources.top().indexOfVert;
 			m_QueueForPseudoSources.pop();
+			//if (m_QueueForPseudoSources.top().disUptodate <= minCurrentDis) {
 			fixedDests.insert(indexOfVert);
+			//}
 			//if (indexOfVert == indexOfSourceVerts[0]){
 			//if (!model.IsConvexVert(indexOfVert))
 			//	ComputeChildrenOfPseudoSource(indexOfVert);
@@ -234,6 +241,26 @@ void CICHWithFurtherPriorityQueue::BuildSequenceTree_DGG(double eps_vg, set<int>
 		{
 			QuoteWindow quoteW = m_QueueForWindows.top();
 			m_QueueForWindows.pop();
+			if (false) {
+				int v0 = model.Edge(quoteW.pWindow->indexOfCurEdge).indexOfLeftVert;
+				int v1 = model.Edge(quoteW.pWindow->indexOfCurEdge).indexOfRightVert;
+				double distance_v0;
+				if (m_InfoAtVertices.find(v0) != m_InfoAtVertices.end()) {
+					distance_v0 = m_InfoAtVertices[v0].disUptodate;
+				}
+				double distance_v1;
+				if (m_InfoAtVertices.find(v1) != m_InfoAtVertices.end()) {
+					distance_v1 = m_InfoAtVertices[v1].disUptodate;
+				}
+				if (distance_v0 <= minCurrentDis) {
+					//printf("v0 %d\n", v0);
+					fixedDests.insert(v0);
+				}
+				if (distance_v1 <= minCurrentDis) {
+					//printf("v1 %d\n", v1);
+					fixedDests.insert(v1);
+				}
+			}
 			ComputeChildrenOfWindow(quoteW);
 			delete quoteW.pWindow;
 		}

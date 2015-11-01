@@ -139,7 +139,6 @@ void figure_6_bunny()
 	cylinder_path.addGeodesicPath(model, source, dest);
 	cylinder_path.write_to_file("bunny_path_staight.obj");
 
-
 	vector<int> sources;
 	sources.push_back(source);
 	CICHWithFurtherPriorityQueue algo_source(model, sources);

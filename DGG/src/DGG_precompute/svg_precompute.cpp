@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include <windows.h>
+#include "Shlwapi.h"
 #include "wxnTime.h"
 #include "svg_precompute.h"
 #include "ICH\RichModel.h"
@@ -11,7 +13,9 @@
 #include "wxn\wxn_path_helper.h"
 #include "wxn\wxn_dijstra.h"
 #include "YXMetric\YXPathTracer.h"
+#include "wxn\wxn_path_helper.h"
 #include <thread>
+#include <random>
 
 bool flag_first_output = true;
 struct WxnBuffer{
@@ -69,6 +73,13 @@ struct WxnBuffer{
 	}
 };
 
+string get_DGG_filename(const string& input_obj_name, const string& method_name, double eps_vg, double const_for_theta)
+{
+	char buf[1024];
+	sprintf(buf, "%s_%s%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), method_name, eps_vg, const_for_theta);
+	//svg_file_name = string(buf);
+	return string(buf);
+}
 
 void generate_output(const string& output_file_name,stringstream& output_str,bool force_output = false)
 {
@@ -197,6 +208,95 @@ void svg_precompute_fix_neighbor(const string& input_obj_name, const int fixed_k
   output_file.close();
 
 }
+
+
+void svg_precompute_fix_neighbor_debug(const string& input_obj_name, const int fixed_k) {
+	//Step 1. Initialize models
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+	ElapasedTime time_once;
+
+	double dis_time_total(0);
+	double past_time(0);
+	//#pragma omp parallel for
+	//for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
+	for (int tmp_source = 0; tmp_source < 10; ++tmp_source) {
+		if (time_once.getTime() -  past_time > 5 ) {
+			past_time = time_once.getTime();
+			char buf[128];
+			time_once.printTime(buf);
+		}
+		ElapasedTime dis_time;
+		int source_index = tmp_source;
+		double farthest = 0.0;
+		//Step 2: Construct a group of source points;
+		vector<int> sources;
+		sources.push_back(source_index);
+		//Step 3: Construct a new algorithm object
+		CICHWithFurtherPriorityQueue alg(model, sources);
+		//Step 4: Locally propagate wavefronts and stop at the prescribed geodesic distance.
+		set<int> fixedDests;
+		//The first parameter is the distance threshold, 
+		//and the second is to return those vertices where the geodesic distance makes sense.
+		double max_radius = 1e10;
+		alg.ExecuteLocally_SVG(max_radius, fixedDests,fixed_k);
+		dis_time_total += dis_time.getTime();
+		//printf("Totally collected: %d\n", fixedDests.size());
+		set<int>::iterator itr;
+		int cnt = 0;
+		vector<pair<int,double>> dests;
+
+		struct node {
+			int id;
+			double dis;
+			int operator<(const node & other) const{
+				return dis < other.dis;
+			}
+		};
+		vector<node> covered_points;
+		covered_points.resize(fixedDests.size());
+		int _index = 0;
+		for (itr = fixedDests.begin(); itr != fixedDests.end(); ++itr) {
+			int v = *itr;
+			map<int, CICHWithFurtherPriorityQueue::InfoAtVertex>::const_iterator it = alg.m_InfoAtVertices.find(v);
+			int indexOfParent = it->second.indexOfParent;
+			int parent = 0;
+			covered_points[_index].id = v;
+			covered_points[_index].dis = it->second.disUptodate;
+			_index ++;
+			if (farthest < it->second.disUptodate){
+				farthest = it->second.disUptodate;
+			}
+			if (it->second.fParentIsPseudoSource) {
+				parent = indexOfParent;
+			} else {
+				parent = it->second.indexOfRootVertOfParent;
+			}
+			//if (parent == sources[0]) {
+			if (true) {
+				dests.push_back(pair<int,double>(v , alg.m_InfoAtVertices[v].disUptodate));
+				++cnt;
+			}
+		}
+		std::sort(covered_points.begin(), covered_points.end());
+		std::map<int, int> mp;
+		for(int i = 0; i < covered_points.size(); ++i){
+			mp[covered_points[i].id] = i;
+		}
+
+		vector<BodyPartOfSVGWithK> body_parts(dests.size());
+		for(int i = 0; i < dests.size(); ++i) {
+			BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , mp[dests[i].first]);
+			body_parts[i] = body_part;
+		}
+		sort(body_parts.begin() , body_parts.end());
+		printf("source %d neigh_size %d\n", tmp_source, body_parts.size());
+	}
+
+	time_once.printTime("time past ");
+
+}
+
 
 #if 0
 void svg_precompute_jiajun_output(const string& input_obj_name, double eps_vg, string& svg_file_name)
@@ -472,129 +572,127 @@ void svg_precompute_jiajun(const string& input_obj_name, double eps_vg, string& 
 
 void svg_precompute_mmp(const string& input_obj_name, const int fixed_k, string& svg_file_name)
 {
-  std::vector<double> points;	
-  std::vector<unsigned> faces;
+	std::vector<double> points;
+	std::vector<unsigned> faces;
 	std::vector<int> realIndex;
 	int originalVertNum = 0;
 
 	clock_t start = clock();
-	bool success = geodesic::read_mesh_from_file(input_obj_name.c_str(),points,faces, realIndex, originalVertNum);
-  if(!success)
-  {
-     fprintf(stderr, "something is wrong with the input file" );
-    return;
-  }
-  geodesic::Mesh mesh;
-  mesh.initialize_mesh_data(points, faces);		//create internal
-  clock_t end = clock();
-  fprintf(stderr,  "loading model took %lf seconds" , (double)(end - start) / (double)CLOCKS_PER_SEC );
+	bool success = geodesic::read_mesh_from_file(input_obj_name.c_str(), points, faces, realIndex, originalVertNum);
+	if (!success)
+	{
+		fprintf(stderr, "something is wrong with the input file");
+		return;
+	}
+	geodesic::Mesh mesh;
+	mesh.initialize_mesh_data(points, faces);		//create internal
+	clock_t end = clock();
+	fprintf(stderr, "loading model took %lf seconds", (double)(end - start) / (double)CLOCKS_PER_SEC);
 
-  svg_file_name = input_obj_name.substr(0,input_obj_name.length() - 4 ) 
-    + "_SVGMMP_k" + to_string(fixed_k) +  ".binary";
+	svg_file_name = input_obj_name.substr(0, input_obj_name.length() - 4)
+		+ "_SVGMMP_k" + to_string(fixed_k) + ".binary";
 
-  int begin_vertex_index = 0;
+	int begin_vertex_index = 0;
 
-  int end_vertex_index = points.size() / 3 - 1;
+	int end_vertex_index = points.size() / 3 - 1;
 
-  ofstream output_file (svg_file_name.c_str() , ios::out | ios::binary);
-  int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
-  HeadOfSVG head_of_svg(begin_vertex_index , end_vertex_index , num_of_vertex );     
-  output_file.write((char*)&head_of_svg , sizeof(head_of_svg));
-  ElapasedTime time_once;
+	ofstream output_file(svg_file_name.c_str(), ios::out | ios::binary);
+	int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
+	HeadOfSVG head_of_svg(begin_vertex_index, end_vertex_index, num_of_vertex);
+	output_file.write((char*)&head_of_svg, sizeof(head_of_svg));
+	ElapasedTime time_once;
 
-  double dis_time_total(0);
-  double past_time(0);
-  //end_vertex_index = 10;
+	double dis_time_total(0);
+	double past_time(0);
+	//end_vertex_index = 10;
 
-  for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
+	for (int tmp_source = begin_vertex_index; tmp_source <= end_vertex_index; ++tmp_source) {
 
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
-    }
-    ElapasedTime dis_time;
-    int source_index = tmp_source;
-    vector<int> srcs;
-    srcs.push_back(source_index);
-    vector<geodesic::SurfacePoint> sources;
-    for (unsigned i = 0; i < srcs.size(); ++i)
-    {
-      srcs[i] %= originalVertNum;
-      srcs[i] = realIndex[srcs[i]];
-      sources.push_back(geodesic::SurfacePoint(&mesh.vertices()[srcs[i]]));
-    }
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			sprintf(buf, "Computed %.0lf percent", (double)tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
+			time_once.printTime(buf);
+		}
+		ElapasedTime dis_time;
+		int source_index = tmp_source;
+		vector<int> srcs;
+		srcs.push_back(source_index);
+		vector<geodesic::SurfacePoint> sources;
+		for (unsigned i = 0; i < srcs.size(); ++i)
+		{
+			srcs[i] %= originalVertNum;
+			srcs[i] = realIndex[srcs[i]];
+			sources.push_back(geodesic::SurfacePoint(&mesh.vertices()[srcs[i]]));
+		}
 
-    geodesic::GeodesicAlgorithmBase *algorithm;
+		geodesic::GeodesicAlgorithmBase *algorithm;
 
-    algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh); 
+		algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh);
 
-    double step = 1.0;
-    const double eta = 100;
+		double step = 1.0;
+		const double eta = 100;
 
-    algorithm->step = step;
-    algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
-    map<int,double> fixedDests;
-    algorithm->propagate_local(sources, fixed_k, fixedDests);
+		algorithm->step = step;
+		algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
+		map<int, double> fixedDests;
+		algorithm->propagate_local(sources, fixed_k, fixedDests);
 
+		vector<pair<int, double>> dests;
 
+		struct node {
+			int id;
+			double dis;
+			int operator<(const node & other) const{
+				return dis < other.dis;
+			}
+		};
 
-    vector<pair<int,double>> dests;
+		//printf("tmp_source %d dest size %d\n" , tmp_source, dest_verts.size());
+		vector<node> covered_points;
+		covered_points.resize(fixedDests.size());
+		int _index = 0;
+		for (auto& d : fixedDests) {
+			geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
+			double dis;
+			//printf("line 274\n");
+			algorithm->best_source(dest_p, dis);
+			//printf("line 276\n");
+			covered_points[_index].id = d.first;
+			covered_points[_index].dis = d.second;
+			_index++;
+			if (fabs(dis - d.second) > 1e-6) {
+				fprintf(stderr, "dis %lf origin %lf\n", dis, d.second);
+			}
+			dests.push_back(make_pair(d.first, d.second));
+		}
+		delete algorithm;
+		algorithm = NULL;
 
-    struct node {
-      int id;
-      double dis;
-      int operator<(const node & other) const{
-        return dis < other.dis;
-      }
-    };
+		std::sort(covered_points.begin(), covered_points.end());
+		std::map<int, int> mp;
+		for (int i = 0; i < covered_points.size(); ++i){
+			mp[covered_points[i].id] = i;
+		}
+		BodyHeadOfSVG body_header(source_index, dests.size());
+		output_file.write((char*)&body_header, sizeof(body_header));
 
-    //printf("tmp_source %d dest size %d\n" , tmp_source, dest_verts.size());
-    vector<node> covered_points;
-    covered_points.resize(fixedDests.size());
-    int _index = 0;
-    for (auto& d:fixedDests) {
-      geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
-      double dis;
-      //printf("line 274\n");
-      algorithm->best_source(dest_p, dis);
-      //printf("line 276\n");
-      covered_points[_index].id = d.first;
-      covered_points[_index].dis = d.second;
-      _index ++;
-      if (fabs(dis - d.second) > 1e-6) {
-        fprintf(stderr,"dis %lf origin %lf\n", dis, d.second);
-      }
-      dests.push_back(make_pair(d.first,d.second));
-    }
-    delete algorithm;
-    algorithm = NULL;
+		vector<BodyPartOfSVGWithK> body_parts(dests.size());
+		for (int i = 0; i < dests.size(); ++i) {
+			BodyPartOfSVGWithK body_part(dests[i].first, dests[i].second, mp[dests[i].first]);
+			//BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , i);
+			body_parts[i] = body_part;
+		}
+		sort(body_parts.begin(), body_parts.end());
+		for (int i = 0; i < body_parts.size(); ++i) {
+			BodyPartOfSVG b = body_parts[i];
+			output_file.write((char*)&b, sizeof(b));
+		}
+	}
 
-    std::sort(covered_points.begin(), covered_points.end());
-    std::map<int, int> mp;
-    for(int i = 0; i < covered_points.size(); ++i){
-      mp[covered_points[i].id] = i;
-    }
-    BodyHeadOfSVG body_header(source_index , dests.size());
-    output_file.write((char*)&body_header , sizeof(body_header));
+	time_once.printTime("time past ");
 
-    vector<BodyPartOfSVGWithK> body_parts(dests.size());
-    for(int i = 0; i < dests.size(); ++i) {
-      BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , mp[dests[i].first]);
-      //BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , i);
-      body_parts[i] = body_part;
-    }
-    sort(body_parts.begin() , body_parts.end());
-    for (int i = 0; i < body_parts.size(); ++i) {
-      BodyPartOfSVG b = body_parts[i];
-      output_file.write( (char*)&b , sizeof(b));
-    }
-  }
-
-    time_once.printTime("time past ");
-  
-    output_file.close();
+	output_file.close();
 
 
 }
@@ -626,8 +724,12 @@ void svg_precompute(const string& input_obj_name, const int fixed_k, string& svg
     if (time_once.getTime() -  past_time > 5 ) {
       past_time = time_once.getTime();
       char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
+
+	  double percent = (double)tmp_source  * 100. / double(end_vertex_index - begin_vertex_index + 1);
+	  double current_time = time_once.getTime();
+	  double remain_time = current_time / percent * (100 - percent);
+	  printf("Computed %.0lf percent, time %lf, estimate_remain_time %lf\n",
+		  percent, current_time, remain_time);
     }
     ElapasedTime dis_time;
     int source_index = tmp_source;
@@ -695,9 +797,7 @@ void svg_precompute(const string& input_obj_name, const int fixed_k, string& svg
       body_parts[i] = body_part;
     }
     sort(body_parts.begin() , body_parts.end());
-    
-    
-
+	//printf("source %d, neigh_size %d\n", tmp_source, body_parts.size());
     for (int i = 0; i < body_parts.size(); ++i) {
       BodyPartOfSVG b = body_parts[i];
       output_file.write( (char*)&b , sizeof(b));
@@ -708,6 +808,111 @@ void svg_precompute(const string& input_obj_name, const int fixed_k, string& svg
   output_file.close();
 
 }
+
+void svg_precompute_debug(const string& input_obj_name, const int fixed_k) {
+	//Step 1. Initialize models
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+
+	int begin_vertex_index = 0;
+
+	int end_vertex_index = 10;
+
+	int num_of_vertex = end_vertex_index - begin_vertex_index + 1;
+	HeadOfSVG head_of_svg(begin_vertex_index, end_vertex_index, num_of_vertex);
+
+	ElapasedTime time_once;
+	double dis_time_total(0);
+	double past_time(0);
+	//#pragma omp parallel for
+	for (int tmp_source = begin_vertex_index; tmp_source <= end_vertex_index; ++tmp_source) {
+
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			sprintf(buf, "Computed %.0lf percent", (double)tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
+			time_once.printTime(buf);
+		}
+		ElapasedTime dis_time;
+		int source_index = tmp_source;
+		double farthest = 0.0;
+		//Step 2: Construct a group of source points;
+		vector<int> sources;
+		sources.push_back(source_index);
+		//Step 3: Construct a new algorithm object
+		CICHWithFurtherPriorityQueue alg(model, sources);
+		//Step 4: Locally propagate wavefronts and stop at the prescribed geodesic distance.
+		set<int> fixedDests;
+		//The first parameter is the distance threshold, 
+		//and the second is to return those vertices where the geodesic distance makes sense.
+		double max_radius = 1e10;
+		alg.ExecuteLocally_SVG(max_radius, fixedDests, fixed_k);
+		dis_time_total += dis_time.getTime();
+		//printf("Totally collected: %d\n", fixedDests.size());
+		set<int>::iterator itr;
+		int cnt = 0;
+		vector<pair<int, double>> dests;
+
+		struct node {
+			int id;
+			double dis;
+			int operator<(const node & other) const{
+				return dis < other.dis;
+			}
+		};
+		vector<node> covered_points;
+		covered_points.resize(fixedDests.size());
+		int _index = 0;
+		for (itr = fixedDests.begin(); itr != fixedDests.end(); ++itr) {
+			int v = *itr;
+			map<int, CICHWithFurtherPriorityQueue::InfoAtVertex>::const_iterator it = alg.m_InfoAtVertices.find(v);
+			int indexOfParent = it->second.indexOfParent;
+			int parent = 0;
+			covered_points[_index].id = v;
+			covered_points[_index].dis = it->second.disUptodate;
+			_index++;
+			if (farthest < it->second.disUptodate){
+				farthest = it->second.disUptodate;
+			}
+			if (it->second.fParentIsPseudoSource) {
+				parent = indexOfParent;
+			}
+			else {
+				parent = it->second.indexOfRootVertOfParent;
+			}
+			if (parent == sources[0]) {
+				dests.push_back(pair<int, double>(v, alg.m_InfoAtVertices[v].disUptodate));
+				++cnt;
+			}
+		}
+		std::sort(covered_points.begin(), covered_points.end());
+		std::map<int, int> mp;
+		for (int i = 0; i < covered_points.size(); ++i){
+			mp[covered_points[i].id] = i;
+		}
+
+		vector<BodyPartOfSVGWithK> body_parts(dests.size());
+		for (int i = 0; i < dests.size(); ++i) {
+			BodyPartOfSVGWithK body_part(dests[i].first, dests[i].second, mp[dests[i].first]);
+			body_parts[i] = body_part;
+		}
+		sort(body_parts.begin(), body_parts.end());
+		printf("source %d body_parts %d\n", tmp_source, body_parts.size());
+
+		{
+			vector<int> dests;
+			for (auto& b : body_parts) {
+				dests.push_back(b.dest_index);
+			}
+			CylinderPath cylinder_path(0.01);
+			cylinder_path.cntGeodesicPaths(model, tmp_source, dests);
+		}
+
+	}
+	time_once.printTime("time past ");
+
+}
+
 
 void svg_precompute_hy(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
 {
@@ -735,11 +940,9 @@ void svg_precompute_hy(const string& input_obj_name, double eps_vg, string& svg_
   clock_t end = clock();
   fprintf(stderr,  "loading model took %lf seconds" , (double)(end - start) / (double)CLOCKS_PER_SEC );
 
-  char buf[1024];
-  sprintf(buf,"%s_HY%lf_c%.0lf.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta);
-  svg_file_name = string(buf);
   //svg_file_name = input_obj_name.substr(0,input_obj_name.length() - 4 ) 
   //  + "_HY" + to_string(eps_vg) +  ".binary";
+  svg_file_name = get_DGG_filename(input_obj_name, "HY", eps_vg, const_for_theta);
 
   int begin_vertex_index = 0;
 
@@ -986,13 +1189,30 @@ void getDisAndAngles(const CRichModel& model, int source, double eps_vg, vector<
 	CICHWithFurtherPriorityQueue alg(model, vector < int > {source});
 	set<int> fixed_dests;
 	alg.ExecuteLocally_DGG(eps_vg, fixed_dests);
-	dests.assign(fixed_dests.begin(), fixed_dests.end());
+	//dests.assign(fixed_dests.begin(), fixed_dests.end());
+	dests.clear();
+	dests.reserve(fixed_dests.size());
 	dis.reserve(fixed_dests.size());
-	for (auto d : dests) {
-		dis.push_back(alg.m_InfoAtVertices[d].disUptodate);
-	}
-	angles.reserve(fixed_dests.size());
 	for (auto d : fixed_dests) {
+		map<int, CICHWithFurtherPriorityQueue::InfoAtVertex>::const_iterator it = alg.m_InfoAtVertices.find(d);
+		int indexOfParent = it->second.indexOfParent;
+		int parent = 0;
+		if (it->second.fParentIsPseudoSource) {
+			parent = indexOfParent;
+		}
+		else {
+			parent = it->second.indexOfRootVertOfParent;
+		}
+		if (source == 0 && d == 20) {
+			printf("source %d dest %d parent %d dis %.10lf\n", source, d, parent, it->second.disUptodate);
+		}
+		if (parent == source) {
+			dests.push_back(d);
+			dis.push_back(it->second.disUptodate);
+		}
+	}
+	angles.reserve(dests.size());
+	for (auto d : dests) {
 		bool isVert;
 		int id;
 		CPoint3D t = alg.BackTraceDirectionOnly(d, isVert, id);
@@ -1114,18 +1334,120 @@ void getFanOutput(const vector<int>& dests, const vector<double>& angles,
 	}
 }
 
-void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
+
+void svg_precompute_ich_vert(int source , int total_vert, CRichModel& model,
+						   	 double eps_vg, double theta, WxnBuffer& wxn_buffer,
+							 bool is_debug_mode, ElapasedTime& time_once,
+							 double& past_time, double& average_degree)
+{
+	if (time_once.getTime() - past_time > 5) {
+		past_time = time_once.getTime();
+		double percent = (double)source  * 100. / double(total_vert);
+		double current_time = time_once.getTime();
+		double remain_time = current_time / percent * (100 - percent);
+		printf("Computed %.0lf percent, time %lf, estimate_remain_time %lf\n",
+					percent, current_time, remain_time);
+		//time_once.printTime(buf);
+	}
+
+	vector<int> dests;
+	vector<double> angles;
+	vector<double> dis;
+	getDisAndAngles(model, source, eps_vg, dests, angles, dis);
+
+
+
+	vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
+	getFanOutput(dests, angles, dis, model, theta, source, body_parts_with_angle);
+	if (is_debug_mode) {
+		CylinderPath cylinder_path(0.01);
+		cylinder_path.cntGeodesicPaths(model, source, dests);
+		printf("neigh sz %d\n", body_parts_with_angle.size());
+	}
+	BodyHeadOfSVG body_header(source, body_parts_with_angle.size());
+	//output_file.write((char*)&body_header, sizeof(body_header));
+	wxn_buffer.addStruct((void*)&body_header, sizeof(body_header));
+	for (auto& b : body_parts_with_angle) {
+		//output_file.write((char*)&b, sizeof(b));
+		wxn_buffer.addStruct((void*)&b, sizeof(b));
+	}
+	average_degree += body_parts_with_angle.size();
+}
+
+
+
+void svg_precompute_ich_debug(const string& input_obj_name, const string& debug_svg_filename, const string& neigh_filename)
+{
+	//void readInputFile(const string& svg_file_name,
+	int node_number;
+	std::ifstream input_file(debug_svg_filename, std::ios::in | std::ios::binary);
+	HeadOfSVG head_of_svg;
+	input_file.read((char*)&head_of_svg, sizeof(head_of_svg));
+	head_of_svg.print();
+	node_number = head_of_svg.num_of_vertex;
+	//std::ofstream output_file(neigh_filename, std::ios::out);
+	FILE* output_file = fopen(neigh_filename.c_str(), "w");
+	ElapasedTime time_once;
+	CRichModel model(input_obj_name);
+	model.Preprocess();
+
+	double past_time = 0;
+	double average_degree = 0;
+	for (int i = 0; i < node_number; ++i) {
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			sprintf(buf, "Computed %.0lf percent", (double)i  * 100. / double(node_number));
+			time_once.printTime(buf);
+		}
+
+		BodyHeadOfSVG body_head;
+		input_file.read((char*)&body_head, sizeof(body_head));
+		std::vector<BodyPartOfSVGWithAngle> body_parts;
+		for (int j = 0; j < body_head.neighbor_num; ++j) {
+			BodyPartOfSVGWithAngle body_part;
+			input_file.read((char*)&body_part, sizeof(body_part));
+			body_parts.push_back(body_part);
+		}
+		int u = body_head.source_index;
+		int number_of_neighbor = body_parts.size();
+		//printf("nei %d\n", body_head.neighbor_num);
+		average_degree += body_head.neighbor_num;
+		fprintf(output_file, "%d %d\n", i, number_of_neighbor);
+		vector<int> dests;
+		for (auto& b : body_parts) {
+			dests.push_back(b.dest_index);
+		}
+		//if (i < 10) {
+		if (false) {
+			if (i == 0) {
+				printf("dests : ");
+				for (auto b : body_parts) {
+					printf("%d %lf ", b.dest_index, b.dest_dis);
+				}
+				printf("\n");
+			}
+			CylinderPath cylinder_path(0.01);
+			cylinder_path.cntGeodesicPaths(model, i, dests);
+		}
+	}
+	input_file.close();
+	fclose(output_file);
+	printf("Average_degree_before %lf\n", average_degree / node_number);
+}
+
+
+void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, bool is_debug_mode)
 {
 	ElapasedTime total_t;
 	double theta = asin(sqrt(eps_vg));
 	theta *= const_for_theta;
-	fprintf(stderr, "******** eps %lf const %lf theta %lf du\n", eps_vg, const_for_theta, theta / M_PI * 180.0);
+	fprintf(stderr, "******** eps %.10lf const %lf theta %lf du\n", eps_vg, const_for_theta, theta / M_PI * 180.0);
 	CRichModel model(input_obj_name);
 	model.Preprocess();
 
-	char buf[1024];
-	sprintf(buf, "%s_DGGICH%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
-	svg_file_name = string(buf);
+	svg_file_name = get_DGG_filename(input_obj_name, "DGGICH", eps_vg, const_for_theta);
+
 	printf("binary filename generated\n");
 	int begin_vertex_index = 0;
 	int end_vertex_index = model.GetNumOfVerts();
@@ -1140,30 +1462,31 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 
 	double past_time;
 	double average_degree = 0;
-	for (int source = 0; source < model.GetNumOfVerts(); ++source) {
-	if (time_once.getTime() - past_time > 5) {
-			past_time = time_once.getTime();
-			char buf[128];
-			sprintf(buf, "Computed %.0lf percent", (double)source  * 100. / (end_vertex_index - begin_vertex_index));
-			time_once.printTime(buf);
+	//if (!is_debug_mode) {
+	if (true) {
+		int start_vert = 0;
+		int end_vert = model.GetNumOfVerts() - 1;
+		int total_vert = end_vert - start_vert + 1;
+		for (int source = start_vert; source <= end_vert; ++source) {
+			svg_precompute_ich_vert(source, total_vert, model,
+				eps_vg, theta, wxn_buffer,
+				is_debug_mode, time_once,
+				past_time, average_degree);
 		}
-		
-		vector<int> dests;
-		vector<double> angles;
-		vector<double> dis;
-		getDisAndAngles(model, source, eps_vg, dests, angles, dis);
-		
-		vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
-		getFanOutput(dests, angles, dis, model, theta, source, body_parts_with_angle);
-
-		BodyHeadOfSVG body_header(source, body_parts_with_angle.size());
-		//output_file.write((char*)&body_header, sizeof(body_header));
-		wxn_buffer.addStruct((void*)&body_header, sizeof(body_header));
-		for (auto& b : body_parts_with_angle) {
-			//output_file.write((char*)&b, sizeof(b));
-			wxn_buffer.addStruct((void*)&b, sizeof(b));
+	}
+	else {
+		std::random_device rd;
+		std::mt19937 gen(0);
+		std::uniform_int_distribution<> rnd_vert(0, model.GetNumOfVerts() - 1);
+		int total_vert = 10;
+		for (int i = 0; i < total_vert; ++i) {
+			int source = rnd_vert(gen);
+			printf("i %d\n", i);
+			svg_precompute_ich_vert(i, total_vert, model,
+				eps_vg, theta, wxn_buffer,
+				is_debug_mode, time_once,
+				past_time, average_degree);
 		}
-		average_degree += body_parts_with_angle.size();
 	}
 	wxn_buffer.close();
 	printf("average_degree %lf\n", average_degree / model.GetNumOfVerts());
@@ -1171,7 +1494,10 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	double ich_time = time_once.getTime();
 	string output_filename;
 	double prune_time;
-	JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	//if (!is_debug_mode) {
+	if (true) {
+		JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+	}
 	svg_file_name = output_filename;
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_time + prune_time);
@@ -1203,11 +1529,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
   clock_t end = clock();
   fprintf(stderr, "loading model took %.2lf secodns\n" , (double)(end - start) / (double)CLOCKS_PER_SEC);;
 
-  char buf[1024];
-  sprintf(buf,"%s_DGG%lf_c%.0lf.binary", input_obj_name.substr(0,input_obj_name.length() - 4 ).c_str(), eps_vg, const_for_theta);
-  svg_file_name = string(buf);
-  //svg_file_name = input_obj_name.substr(0,input_obj_name.length() - 4 ) 
-  //  + "_HY" + to_string(eps_vg) +  ".binary";
+  svg_file_name = get_DGG_filename(input_obj_name, "DGG", eps_vg, const_for_theta);
 
   int begin_vertex_index = 0;
   int end_vertex_index = points.size() / 3 - 1;
@@ -1482,218 +1804,234 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
 
 }
 
+
+void dggPropagateCompute(const int source_index, geodesic::Mesh& mesh, double eps_vg,
+	double theta, const CRichModel& model, BodyHeadOfSVG& body_header, vector<BodyPartOfSVGWithAngle>& body_parts_with_angle)
+{
+	vector<int> srcs;
+	srcs.push_back(source_index);
+	vector<geodesic::SurfacePoint> sources;
+	for (unsigned i = 0; i < srcs.size(); ++i)
+	{
+		sources.push_back(geodesic::SurfacePoint(&mesh.vertices()[srcs[i]]));
+	}
+
+	ElapasedTime tm_propagate;
+
+	geodesic::GeodesicAlgorithmBase *algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh);
+
+	double step = 1.0;
+	const double eta = 100;
+
+	algorithm->step = step;
+	algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
+	map<int, double> fixedDests;
+	algorithm->propagate_vg(sources, eps_vg, fixedDests);
+
+	ElapasedTime tm_backtrace;
+
+	vector<pair<int, double>> dests;
+
+	struct node {
+		int id;
+		double dis;
+		int operator<(const node & other) const{
+			return dis < other.dis;
+		}
+	};
+
+	vector<node> covered_points;
+	covered_points.resize(fixedDests.size());
+	int _index = 0;
+	for (auto& d : fixedDests) {
+		geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
+		double dis;
+		//printf("line 274\n");
+		algorithm->best_source(dest_p, dis);
+		//printf("line 276\n");
+		covered_points[_index].id = d.first;
+		covered_points[_index].dis = d.second;
+		_index++;
+		dests.push_back(make_pair(d.first, d.second));
+	}
+
+	ElapasedTime tm_sort;
+
+	std::sort(covered_points.begin(), covered_points.end());
+	std::map<int, int> mp;
+	for (int i = 0; i < covered_points.size(); ++i){
+		mp[covered_points[i].id] = i;
+	}
+	//BodyHeadOfSVG body_header(source_index, dests.size());
+	body_header = BodyHeadOfSVG(source_index, dests.size());
+	
+
+	vector<BodyPartOfSVGWithK> body_parts(dests.size());
+	for (int i = 0; i < dests.size(); ++i) {
+		BodyPartOfSVGWithK body_part(dests[i].first, dests[i].second, mp[dests[i].first]);
+		//BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , i);
+		body_parts[i] = body_part;
+	}
+	sort(body_parts.begin(), body_parts.end());
+
+	vector<double> angles(body_parts.size());
+	for (int i = 0; i < body_parts.size(); ++i) {
+		//double distance;
+		//auto p(geodesic::SurfacePoint(&mesh.vertices()[body_parts[i].dest_index]));
+		//unsigned best_source = algorithm->best_source(p, distance);	
+		auto dest_vert(geodesic::SurfacePoint(&mesh.vertices()[body_parts[i].dest_index]));
+		vector<geodesic::SurfacePoint> path;
+		algorithm->trace_back(dest_vert, path);
+		geodesic::SurfacePoint p;
+		if (path.size() > 1) {
+			p = *(path.rbegin() + 1);
+		}
+		else {
+			p = (path[0]);
+		}
+		//         VERTEX,
+		//   EDGE,
+		//   FACE,
+		//UNDEFINED_POINT
+		auto& neighs = model.Neigh(source_index);
+		vector<double> sum_angle(neighs.size() + 1);
+		sum_angle[0] = 0;
+		for (int j = 1; j <= neighs.size(); ++j) {
+			sum_angle[j] = sum_angle[j - 1] + neighs[j - 1].second;
+		}
+
+		double angle = 0;
+		if (p.type() == geodesic::VERTEX) {
+			//printf("vertex\n");
+			bool flag_found = false;
+			for (int j = 0; j < neighs.size(); ++j) {
+				auto& neigh = neighs[j];
+				if (p.base_element()->id() == model.Edge(neigh.first).indexOfRightVert) {
+					//printf("yes\n");
+					flag_found = true;
+					angle = sum_angle[j];
+					break;
+				}
+			}
+			if (!flag_found) {
+				angle = 0;
+				//printf("vertex %d source %d\n" , p.base_element()->id(), source_index);
+			}
+
+		}
+		else if (p.type() == geodesic::EDGE) {
+
+			//printf("edge\n");
+			int v0 = p.base_element()->adjacent_vertices()[0]->id();
+			int v1 = p.base_element()->adjacent_vertices()[1]->id();
+			bool flag = false;
+			for (int j = 0; j < neighs.size(); ++j) {
+				auto& neigh = neighs[j];
+				if (v0 == model.Edge(neigh.first).indexOfRightVert) {
+					int jminus1 = (j - 1 + neighs.size()) % neighs.size();
+					int vjminus1 = model.Edge(neighs[jminus1].first).indexOfRightVert;
+					int jplus1 = (j + 1) % neighs.size();
+					int vjplus1 = model.Edge(neighs[jplus1].first).indexOfRightVert;
+					//printf("v1 %d j -1 %d j + 1 %d\n" , v1, vjminus1, vjplus1); 
+					CPoint3D p_cpoint3d(p.x(), p.y(), p.z());
+
+					if (v1 == vjminus1) {//v1 first
+						double l = model.Edge(neighs[jminus1].first).length;
+						double r = (model.Vert(source_index) - p_cpoint3d).Len();
+						double b = (model.Vert(vjminus1) - p_cpoint3d).Len();
+						angle = sum_angle[jminus1] + acos((l * l + r * r - b * b) / (2 * l * r));
+					}
+					else if (v1 == vjplus1) {//v0 first
+						double l = model.Edge(neighs[j].first).length;
+						double r = (model.Vert(source_index) - p_cpoint3d).Len();
+						double b = (model.Vert(v0) - p_cpoint3d).Len();
+						angle = sum_angle[j] + acos((l * l + r * r - b * b) / (2 * l * r));
+					}
+					else{
+						fprintf(stderr, "fuck error line 680\n");
+					}
+					flag = true;
+					break;
+				}
+			}
+			if (!flag) {
+				fprintf(stderr, "flag %d\n", flag);
+			}
+
+		}
+		else{
+			fprintf(stderr, "fuck error face\n");
+		}
+
+		angles[i] = angle;
+	}
+
+	//vector<BodyPartOfSVGWithAngle> body_parts_with_angle(body_parts.size());
+	body_parts_with_angle.resize(body_parts.size());
+	for (int i = 0; i < body_parts.size(); ++i) {
+		BodyPartOfSVG b = body_parts[i];
+		BodyPartOfSVGWithAngle b_with_angle(b.dest_index, b.dest_dis, angles[i], 0, 0);
+		body_parts_with_angle[i] = b_with_angle;
+	}
+	sort(body_parts_with_angle.begin(), body_parts_with_angle.end());
+	//for (auto& b:body_parts_with_angle) {
+	//  fprintf(stderr,"b %lf " , b.angle);
+	//}
+	//printf("\n");
+	float angle_sum = model.AngleSum(source_index);
+	vector<double> tmp_angles(body_parts_with_angle.size() * 2);
+	for (int i = 0; i < body_parts_with_angle.size(); ++i) {
+		tmp_angles[i] = body_parts_with_angle[i].angle;
+	}
+	for (int i = body_parts_with_angle.size(); i < tmp_angles.size(); ++i) {
+		tmp_angles[i] = body_parts_with_angle[i - body_parts_with_angle.size()].angle + angle_sum;
+	}
+	//if (source_index == 0) {
+	//  for (auto& p:tmp_angles) {
+	//    fprintf(stderr,"p %lf " , p);
+	//  }
+	//}
+	for (int i = 0; i < body_parts_with_angle.size(); ++i) {//assume i is father
+		float father_angle = body_parts_with_angle[i].angle;
+		//based on father_angle as 0
+		float start_angle = M_PI - theta + father_angle;
+		float end_angle = angle_sum - (M_PI - theta) + father_angle;
+		if (start_angle > end_angle) {
+			body_parts_with_angle[i].begin_pos = -1;
+			body_parts_with_angle[i].end_pos = -1;
+			continue;
+		}
+
+		int start_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), start_angle) - tmp_angles.begin();
+		if (start_pos > 0) start_pos--;
+		int end_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), end_angle) - tmp_angles.begin();
+		//if (source_index == 0 ) {
+		//  fprintf(stderr,"dest %d dis %lf start_angle %lf start_pos_angle %lf end_angle  %lf end_pos_angle %lf\n" , body_parts_with_angle[i].dest_index, body_parts_with_angle[i].dest_dis,start_angle, tmp_angles[start_pos], end_angle, tmp_angles[end_pos]);
+		//}
+		if (start_pos >= body_parts_with_angle.size()) start_pos -= body_parts_with_angle.size();
+		if (end_pos >= body_parts_with_angle.size()) end_pos -= body_parts_with_angle.size();
+		body_parts_with_angle[i].begin_pos = start_pos;
+		body_parts_with_angle[i].end_pos = end_pos;
+	}
+
+	delete algorithm;
+	algorithm = NULL;
+
+
+
+
+}
+
 void dggPropagate(const int source_index, geodesic::Mesh& mesh, double eps_vg,
                   double theta, FILE* output_file, const CRichModel& model)
 {
-    vector<int> srcs;
-    srcs.push_back(source_index);
-    vector<geodesic::SurfacePoint> sources;
-    for (unsigned i = 0; i < srcs.size(); ++i)
-    {
-      sources.push_back(geodesic::SurfacePoint(&mesh.vertices()[srcs[i]]));
-    }
-
-    ElapasedTime tm_propagate;
-
-    geodesic::GeodesicAlgorithmBase *algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh); 
-
-    double step = 1.0;
-    const double eta = 100;
-
-    algorithm->step = step;
-    algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
-    map<int,double> fixedDests;
-    algorithm->propagate_vg(sources, eps_vg, fixedDests);
-
-    ElapasedTime tm_backtrace;
-
-    vector<pair<int,double>> dests;
-
-    struct node {
-      int id;
-      double dis;
-      int operator<(const node & other) const{
-        return dis < other.dis;
-      }
-    };
-
-    vector<node> covered_points;
-    covered_points.resize(fixedDests.size());
-    int _index = 0;
-    for (auto& d:fixedDests) {
-      geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
-      double dis;
-      //printf("line 274\n");
-      algorithm->best_source(dest_p, dis);
-      //printf("line 276\n");
-      covered_points[_index].id = d.first;
-      covered_points[_index].dis = d.second;
-      _index ++;
-      dests.push_back(make_pair(d.first,d.second));
-    }
-
-    ElapasedTime tm_sort;
-
-    std::sort(covered_points.begin(), covered_points.end());
-    std::map<int, int> mp;
-    for(int i = 0; i < covered_points.size(); ++i){
-      mp[covered_points[i].id] = i;
-    }
-    BodyHeadOfSVG body_header(source_index , dests.size());  
-    //output_file.write((char*)&body_header , sizeof(body_header));
+	BodyHeadOfSVG body_header;
+	vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
+	dggPropagateCompute(source_index, mesh, eps_vg, theta, model, body_header, body_parts_with_angle);
 	fwrite(&body_header, sizeof(body_header), 1, output_file);
-	//buffer.addStruct(&body_header, sizeof(body_header));
-
-    vector<BodyPartOfSVGWithK> body_parts(dests.size());
-    for(int i = 0; i < dests.size(); ++i) {
-      BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , mp[dests[i].first]);
-      //BodyPartOfSVGWithK body_part(dests[i].first , dests[i].second , i);
-      body_parts[i] = body_part;
-    }
-    sort(body_parts.begin() , body_parts.end());
-
-    vector<double> angles(body_parts.size());
-    for (int i = 0; i < body_parts.size(); ++i) {
-      //double distance;
-      //auto p(geodesic::SurfacePoint(&mesh.vertices()[body_parts[i].dest_index]));
-      //unsigned best_source = algorithm->best_source(p, distance);	
-      auto dest_vert(geodesic::SurfacePoint(&mesh.vertices()[body_parts[i].dest_index]));
-      vector<geodesic::SurfacePoint> path; 
-      algorithm->trace_back(dest_vert, path);
-      geodesic::SurfacePoint p;
-      if (path.size() > 1) {
-        p = *(path.rbegin()+1);
-      } else {
-        p = (path[0]);
-      }
-      //         VERTEX,
-      //   EDGE,
-      //   FACE,
-      //UNDEFINED_POINT
-      auto& neighs = model.Neigh(source_index);
-      vector<double> sum_angle(neighs.size()+1);
-      sum_angle[0] = 0;
-      for (int j = 1; j <= neighs.size(); ++j) {
-        sum_angle[j] = sum_angle[j-1] + neighs[j-1].second;
-      }
-
-      double angle = 0;
-      if ( p.type() == geodesic::VERTEX) {
-        //printf("vertex\n");
-        bool flag_found = false;
-        for (int j = 0; j < neighs.size(); ++j) {
-          auto& neigh = neighs[j];
-          if ( p.base_element()->id() == model.Edge(neigh.first).indexOfRightVert) {
-            //printf("yes\n");
-            flag_found = true;
-            angle = sum_angle[j];
-            break;
-          }
-        }
-        if (!flag_found) {
-          angle = 0;
-          //printf("vertex %d source %d\n" , p.base_element()->id(), source_index);
-        }
-
-      } else if(p.type() == geodesic::EDGE) {
-
-        //printf("edge\n");
-        int v0 = p.base_element()->adjacent_vertices()[0]->id();
-        int v1 = p.base_element()->adjacent_vertices()[1]->id();
-        bool flag = false;
-        for (int j = 0; j < neighs.size(); ++j) {
-          auto& neigh = neighs[j];
-          if (v0 == model.Edge(neigh.first).indexOfRightVert) {
-            int jminus1 = (j-1+neighs.size())%neighs.size();
-            int vjminus1 = model.Edge(neighs[jminus1].first).indexOfRightVert;
-            int jplus1 = (j+1)%neighs.size();
-            int vjplus1 = model.Edge(neighs[jplus1].first).indexOfRightVert;
-            //printf("v1 %d j -1 %d j + 1 %d\n" , v1, vjminus1, vjplus1); 
-            CPoint3D p_cpoint3d(p.x(),p.y(),p.z());
-
-            if (v1 == vjminus1) {//v1 first
-              double l = model.Edge(neighs[jminus1].first).length;
-              double r = (model.Vert(source_index) - p_cpoint3d).Len();
-              double b = (model.Vert(vjminus1) - p_cpoint3d).Len();
-              angle = sum_angle[jminus1] + acos((l * l + r * r - b * b) / (2 * l * r));
-            } else if (v1 == vjplus1) {//v0 first
-              double l = model.Edge(neighs[j].first).length;
-              double r = (model.Vert(source_index) - p_cpoint3d).Len();
-              double b = (model.Vert(v0) - p_cpoint3d).Len();
-              angle = sum_angle[j] + acos((l * l + r * r - b * b) / (2 * l * r));
-            }else{
-              fprintf(stderr,"fuck error line 680\n");
-            }
-            flag = true;
-            break;
-          }
-        }
-        if (!flag) {
-          fprintf(stderr,"flag %d\n" , flag);
-        }
-
-      } else{
-        fprintf(stderr,"fuck error face\n");
-      }
-
-      angles[i] = angle;
-    }
-
-    vector<BodyPartOfSVGWithAngle> body_parts_with_angle(body_parts.size());
-    for (int i = 0; i < body_parts.size(); ++i) {
-      BodyPartOfSVG b = body_parts[i];
-      BodyPartOfSVGWithAngle b_with_angle(b.dest_index, b.dest_dis, angles[i],0,0);
-      body_parts_with_angle[i] = b_with_angle;
-      //output_file.write( (char*)&b_with_angle , sizeof(b_with_angle));
-    }
-    sort(body_parts_with_angle.begin(), body_parts_with_angle.end());
-    //for (auto& b:body_parts_with_angle) {
-    //  fprintf(stderr,"b %lf " , b.angle);
-    //}
-    //printf("\n");
-    float angle_sum = model.AngleSum(source_index);
-    vector<double> tmp_angles(body_parts_with_angle.size()*2);
-    for (int i = 0; i < body_parts_with_angle.size(); ++i) {
-      tmp_angles[i] = body_parts_with_angle[i].angle;
-    }
-    for (int i = body_parts_with_angle.size(); i < tmp_angles.size(); ++i) {
-      tmp_angles[i] = body_parts_with_angle[i-body_parts_with_angle.size()].angle + angle_sum;
-    }
-    //if (source_index == 0) {
-    //  for (auto& p:tmp_angles) {
-    //    fprintf(stderr,"p %lf " , p);
-    //  }
-    //}
-    for (int i = 0; i < body_parts_with_angle.size(); ++i) {//assume i is father
-      float father_angle = body_parts_with_angle[i].angle;
-      //based on father_angle as 0
-      float start_angle = M_PI - theta + father_angle;
-      float end_angle = angle_sum - (M_PI - theta) + father_angle;
-      if (start_angle > end_angle) {
-        body_parts_with_angle[i].begin_pos = -1;
-        body_parts_with_angle[i].end_pos = -1;
-        continue;
-      }
-
-      int start_pos = lower_bound(tmp_angles.begin(),tmp_angles.end(),start_angle) - tmp_angles.begin();
-      if (start_pos > 0) start_pos--;
-      int end_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), end_angle) - tmp_angles.begin();
-      //if (source_index == 0 ) {
-      //  fprintf(stderr,"dest %d dis %lf start_angle %lf start_pos_angle %lf end_angle  %lf end_pos_angle %lf\n" , body_parts_with_angle[i].dest_index, body_parts_with_angle[i].dest_dis,start_angle, tmp_angles[start_pos], end_angle, tmp_angles[end_pos]);
-      //}
-      if (start_pos >= body_parts_with_angle.size()) start_pos -= body_parts_with_angle.size();
-      if (end_pos >= body_parts_with_angle.size()) end_pos -= body_parts_with_angle.size();
-      body_parts_with_angle[i].begin_pos = start_pos;
-      body_parts_with_angle[i].end_pos = end_pos;
-    }
-
-    for (auto& b:body_parts_with_angle) {
-      //output_file.write((char*)&b , sizeof(b));    
+	for (auto& b : body_parts_with_angle) {
 		fwrite(&b, sizeof(b), 1, output_file);
-		//buffer.addStruct(&b, sizeof(b));
 	}
-    delete algorithm;
-    algorithm = NULL;
 }
 
 
@@ -1938,10 +2276,7 @@ void readInputFile(const string& svg_file_name,
 		//	std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
 		//}
 	}
-
 	input_file.close();
-
-
 }
 
 
@@ -2069,8 +2404,21 @@ void wxn_pruning(const string& svg_file_name, double eps_vg, string& test_output
 }
 
 
-void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num)
+void svg_precompute_ich_multithread_before_pruning(const string& input_obj_name, double eps_vg,
+												   string& svg_file_name, double const_for_theta, 
+												   int thread_num, double& ich_multi_time)
 {
+
+	char buf[1024];
+	sprintf(buf, "%s_DGGICH%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
+	svg_file_name = string(buf);
+	int svg_file_exists = PathFileExists(svg_file_name.c_str());
+	if (svg_file_exists == 1)
+	{
+		return;
+	}
+
+
 	ElapasedTime total_t;
 	double theta = asin(sqrt(eps_vg));
 	theta *= const_for_theta;
@@ -2106,18 +2454,20 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	for (int i = 0; i < thread_num; ++i) {
 		tt[i].join();
 	}
-	double ich_multi_time = time_multi.getTime();
+	ich_multi_time = time_multi.getTime();
 	time_multi.printTime("ich_multi_time");
-	char buf[1024];
-	sprintf(buf, "%s_DGGICH%lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
-	svg_file_name = string(buf);
+
 	ElapasedTime combine_time;
 	combinePartPrecomputeFiles(svg_part_file_names, svg_file_name, model.GetNumOfVerts(), thread_num);
 	combine_time.printTime("combine time");
 
-	//string output_filename;
-	//double prune_time;
-	//JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
+}
+
+
+void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num)
+{
+	double ich_multi_time = 0;
+	svg_precompute_ich_multithread_before_pruning(input_obj_name, eps_vg, svg_file_name, const_for_theta, thread_num, ich_multi_time);
 	string wxn_output_filename(svg_file_name.substr(0, svg_file_name.length() - 7) + "_pruning.binary");
 	double prune_time;
 	ElapasedTime wxn_pruning_time;
@@ -2125,8 +2475,6 @@ void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg,
 	wxn_pruning_time.printTime("wxn pruning time");
 	fprintf(stderr, "prunning time %lf\n", prune_time);
 	fprintf(stderr, "total_time_and_pruning %lf\n", ich_multi_time + prune_time);
-
-
 }
 
 
@@ -2306,7 +2654,6 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
 
   for (int source_index = 0; source_index < num_of_vertex; ++source_index) {
 
-    //vector<BodyPartOfSVGWithAngle> body_parts_with_angle(body_parts.size());
     auto& graph_body_part = graph_with_angle[source_index];
     sort(graph_body_part.begin(), graph_body_part.end());
     int neigh_size = graph_body_part.size();
@@ -2314,7 +2661,6 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
     for (int i = 0; i < neigh_size; ++i) {
       body_parts_with_range[i] = BodyPartOfSVGWithRange(graph_body_part[i].dest_index,graph_body_part[i].dest_dis,-1,-1);
     }
-
 
     float angle_sum = model.AngleSum(source_index);
     vector<double> tmp_angles(neigh_size*2);
@@ -2358,6 +2704,7 @@ void  svg_precompute_hy_multithread(const string& input_obj_name, double eps_vg,
   output_file.close();
 }
 
+#if 0
 void svg_precompute_hy_fast(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta)
 {
   ElapasedTime t;
@@ -2370,13 +2717,12 @@ void svg_precompute_hy_fast(const string& input_obj_name, double eps_vg, string&
 
  // fprintf(stderr,"total_time_and_pruning %lf\n" , t + prune_time);
 }
-
-
+#endif
 
 void findPointUsingPathTracer(const CRichModel& model, const int source_vert, 
 							  const int direction_edge,	const double dis,
 							  const double angle, YXPathTracer& path_tracer,
-							  CPoint3D& p, int& v0_id, int& v1_id)
+							  CPoint3D& p, int& face_idx)
 {
 	const auto& e = model.Edge(direction_edge);
 	int v1 = e.indexOfLeftVert;
@@ -2386,7 +2732,7 @@ void findPointUsingPathTracer(const CRichModel& model, const int source_vert,
 	path_tracer.computeSinglePathArbitraryStart(e_id_yx, angle, dis, tmp_path, source_vert);
 	//center_3d = CenterPoint(path_tracer.convertToYXPoint3D(tmp_path.back()).toCPoint3D());
 	p = path_tracer.convertToYXPoint3D(tmp_path.back()).toCPoint3D();
-	path_tracer.convertToYXPoint3D(tmp_path.back(), v0_id, v1_id);
+	face_idx = path_tracer.getFaceIndex(tmp_path.back());
 }
 
 
@@ -2430,19 +2776,8 @@ void getPointOnEdge(const vector<double>& sum_angle, double angle, const CRichMo
 //CPoint3D p = v0 * (1 - l2 / l) + v1 * l2 / l;
 
 
-void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name)
+void cnt_percent(const CRichModel& model, SparseGraph<float>* s_graph)
 {
-	SparseGraph<float>* s_graph = NULL;
-	s_graph = new LC_HY<float>();
-	s_graph->read_svg_file_with_angle((string)svg_file_name);
-	CRichModel model(input_file_name);
-	model.Preprocess();
-
-	YXPathTracer path_tracer;
-	printf("model_file_name %s\n", input_file_name.c_str());
-	path_tracer.init(input_file_name.c_str());
-
-	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
 	int cnt = 0;
 	int percent[20] = { 0 };
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
@@ -2452,7 +2787,7 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 		for (int j = 0; j < angles.size() - 1; ++j) {
 			angles_diff[j] = angles[j + 1] - angles[j];
 			//printf("a%lf ", angles[j]);
-			if (angles_diff[j] >=  2 * 2 * M_PI / angles.size()) {
+			if (angles_diff[j] >= 2 * 2 * M_PI / angles.size()) {
 				//printf("%lf ", angles_diff[j] / (2 * M_PI / angles.size()));
 				int pos_in_percent = int(angles_diff[j] / (2 * M_PI / angles.size()));
 				percent[pos_in_percent]++;
@@ -2475,9 +2810,26 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 		printf("%.7lf ", percent[i] / (double)cnt);
 	}
 	printf("\n");
+}
+
+void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name)
+{
+	SparseGraph<float>* s_graph = NULL;
+	s_graph = new LC_HY<float>();
+	s_graph->read_svg_file_with_angle((string)svg_file_name);
+	CRichModel model(input_file_name);
+	model.Preprocess();
+
+	YXPathTracer path_tracer;
+	printf("model_file_name %s\n", input_file_name.c_str());
+	path_tracer.init(input_file_name.c_str());
+
+	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
+
 
 	vector<int> origin_of_new_faces;
 	ModelForSubdivide sub_model(model, origin_of_new_faces);
+	vector<CPoint3D> added_points_list;
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
 		auto& geo_dises = s_graph->graphNeighborDis(i);
 		auto& angles = s_graph->graph_neighbor_angle[i];
@@ -2504,21 +2856,23 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 				for (int k = 0; k < divide_angles.size(); ++k) {
 					divide_angles[k] = angles[j] + (double)(k + 1) / (double)pos_in_percent * angles_diff;
 					CPoint3D p;
-					int v0_id, v1_id;
-					//getPointOnEdge(sum_angle, divide_angles[k], model, neighs, i, p , v0_id, v1_id);
+					int face_index;
 					
 					findPointUsingPathTracer(model, i, neighs[0].first, dis,
-											 divide_angles[k], path_tracer, p, v0_id,
-											 v1_id);
-					int edge_id = model.GetEdgeIndexFromTwoVertices(v0_id, v1_id);
-					if (edge_id < 0) {
-						printf("edge_id %d\n", edge_id);
-					}
-					sub_model.addVertexOnEdge(p, model.Edge(edge_id).indexOfSimpleEdge);
+											 divide_angles[k], path_tracer, p, face_index);
+					
+
+					//printf("face_index %d\n", face_index);
+
+					sub_model.addVertexOnFace(p, face_index);
+					added_points_list.push_back(p);
 				}
 			}
 		}
 	}
+
+	printBallToObj(added_points_list, "added_points_list.obj", 0.001);
+
 
 	sub_model.subdivide();
 	sub_model.WriteToFile("fertility_nf10k_ani2_lyj.obj");
