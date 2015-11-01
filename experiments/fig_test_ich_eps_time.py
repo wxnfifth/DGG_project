@@ -61,9 +61,9 @@ for eps in eps_list:
     elif const_method == 'choose':
         constant = input_const
     #constant = 5
-    precompute_log_filename = os.path.join(dir_name,'dggich_precompute_%s_%f_%d.log' % (model_name,eps,constant))
-    svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f i %d 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
-    svg_binary_filename = os.path.join(dir_name,'%s_DGGICH%f_c%d_pruning.binary' % (model_name,eps,constant))
+    precompute_log_filename = os.path.join(dir_name,'dggich_precompute_%s_%.10f_%d.log' % (model_name,eps,constant))
+    svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %.10f im %d 4 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
+    svg_binary_filename = os.path.join(dir_name,'%s_DGGICH%.10f_c%d_pruning.binary' % (model_name,eps,constant))
     if not os.path.isfile(svg_binary_filename):
         print svg_precompute_cmd_line
         os.system(svg_precompute_cmd_line)
@@ -71,15 +71,15 @@ for eps in eps_list:
         #svg_tmp_binary_filename = '%s_DGG%f_c%d.binary' % (model_name,eps,constant)
         #os.system('del ' + svg_tmp_binary_filename)
     else:
-        flag_preprocess = False
+         flag_preprocess = False
     svg_log_filename=svg_binary_filename[:-7] + '_hy.log'
     #if not os.path.isfile(svg_log_filename):
     if method == 'fan':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'lc':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'dggdij':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s dggdij 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s dggdij dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
 	        
     print svg_lll_cmd_line
     os.system(svg_lll_cmd_line)
