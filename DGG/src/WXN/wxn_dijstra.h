@@ -20,7 +20,6 @@ protected:
   std::vector<std::vector<int16_t>> graph_pos_in_neighbor;
   int node_number_;
   std::vector<std::vector<T>> graph_neighbor_dis;
-  //std::vector<std::vector<T>> graph_neighbor_angle;
   std::vector<std::vector<pair<int16_t, int16_t>>> graph_neighbor_begin_end_pos;
   std::vector<std::map<int,int16_t>> graph_neighbor_map;
 

@@ -382,6 +382,36 @@ void CylinderPath::addGeodesicPath(geodesic::Mesh& mesh, geodesic::SurfacePoint&
 
 }
 
+void CylinderPath::cntGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts)
+{
+	vector<int> sources;
+	sources.push_back(v0);
+	CICHWithFurtherPriorityQueue ich_algoritm(model, sources);
+	ich_algoritm.Execute();
+
+	for (auto& v : vts) {
+		vector<CPoint3D> path_points;
+		vector<IntersectionWithPath> paths;
+		ich_algoritm.FindSourceVertex(v, paths);
+		int cnt_is_vert = 0;
+		for (auto& p : paths) {
+			path_points.push_back(p.GetPosition(model));
+			if (p.isVertex) {
+				cnt_is_vert++;
+			}
+		}
+		if (cnt_is_vert != 2) {
+			printf("v0 %d v_dest %d dis %.10lf vert_in_path %d :", v0, v, ich_algoritm.m_InfoAtVertices[v].disUptodate, cnt_is_vert);
+			for (auto& p : paths) {
+				if (p.isVertex) {
+					printf("%d ", p.index);
+				}
+			}
+			printf("\n");
+		}
+	}
+}
+
 
 void CylinderPath::addGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts)
 {

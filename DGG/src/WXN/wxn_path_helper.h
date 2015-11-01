@@ -26,6 +26,9 @@ public:
 
   void addGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts);
 
+  void cntGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts);
+
+
   void addGeodesicPath(CRichModel& model, int v0, int v1);
   
 
