@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "svg_precompute.h"
+#include "svg_precompute_debug.h"
 
 
 int main(int argc, char** argv)
@@ -21,16 +22,16 @@ int main(int argc, char** argv)
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
-	}	else if (method == "h" || method == "p" || method == "d" || method == "m"||
-				 method == "i" || method == "id" || method == "im" || method == "if"
-				 || method == "imn") {
+	} else if (method == "h" || method == "p" || method == "d" || method == "m"||
+		method == "i" || method == "id" || method == "im" || method == "imd" ||
+				 method == "if" || method == "imn") {
       input_file_name = argv[1];
       eps_vg = atof(argv[2]);
       method = argv[3];
       if (argc >= 5) {
         const_for_theta = atoi(argv[4]);
       } 
-      if (method == "m" || method == "im") {
+      if (method == "m" || method == "im" || method == "imd") {
           if (argc == 6) {
             thread_num = atoi(argv[5]);
           } else {
@@ -75,7 +76,10 @@ int main(int argc, char** argv)
 	  //svg_precompute_debug(debug_svg_filename, neigh_filename);
   } else if (method == "im") {
 	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
-  } else if (method == "imn") {
+  } else if (method == "imd") {
+	  svg_precompute_ich_multithread_debug(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
+  }
+  else if (method == "imn") {
 	  string dgg_file_name = get_DGG_filename(input_file_name, "DGGICH", eps_vg, const_for_theta);
 	  string filename_prefix = dgg_file_name.substr(0, dgg_file_name.length() - 7);
 	  //dgg_file_name = filename_prefix + "_pruning.binary";

@@ -87,6 +87,9 @@
     <ClCompile Include="..\src\YXMetric\YXApproxBlueNoise.cpp">
       <Filter>YXMetric</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\DGG_precompute\svg_precompute_debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\DGG_precompute\svg_precompute.h">
@@ -196,6 +199,9 @@
     </ClInclude>
     <ClInclude Include="..\src\YXMetric\YXMetric.h">
       <Filter>YXMetric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DGG_precompute\svg_precompute_debug.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

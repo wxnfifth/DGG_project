@@ -724,7 +724,6 @@ void svg_precompute(const string& input_obj_name, const int fixed_k, string& svg
     if (time_once.getTime() -  past_time > 5 ) {
       past_time = time_once.getTime();
       char buf[128];
-
 	  double percent = (double)tmp_source  * 100. / double(end_vertex_index - begin_vertex_index + 1);
 	  double current_time = time_once.getTime();
 	  double remain_time = current_time / percent * (100 - percent);
@@ -1355,8 +1354,6 @@ void svg_precompute_ich_vert(int source , int total_vert, CRichModel& model,
 	vector<double> dis;
 	getDisAndAngles(model, source, eps_vg, dests, angles, dis);
 
-
-
 	vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
 	getFanOutput(dests, angles, dis, model, theta, source, body_parts_with_angle);
 	if (is_debug_mode) {
@@ -1418,7 +1415,6 @@ void svg_precompute_ich_debug(const string& input_obj_name, const string& debug_
 		for (auto& b : body_parts) {
 			dests.push_back(b.dest_index);
 		}
-		//if (i < 10) {
 		if (false) {
 			if (i == 0) {
 				printf("dests : ");
@@ -1494,8 +1490,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	double ich_time = time_once.getTime();
 	string output_filename;
 	double prune_time;
-	//if (!is_debug_mode) {
-	if (true) {
+	if (!is_debug_mode) {
 		JIAJUN_DGG_PRUNING::dgg_pruning(svg_file_name, eps_vg, output_filename, prune_time);
 	}
 	svg_file_name = output_filename;
@@ -2141,10 +2136,9 @@ void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, do
 
 }
 
-const double JiajunMaxDist(1e5);
 
 template <class T>
-void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
+void dijkstra_pruning_induced_graph(const vector<vector<int>>&  graph_neighbor,
 	const vector<vector<T>>& graph_neighbor_dis,
 	vector<bool>& current_graph_neighbor_deleted,
 	int src, double eps_vg, vector<T>& dis, vector<bool>& mark)
@@ -2233,6 +2227,88 @@ void dijkstra_pruning(const vector<vector<int>>&  graph_neighbor,
 }
 
 
+
+template <class T>
+void dijkstra_pruning_disk_graph(const vector<vector<int>>&  graph_neighbor,
+	const vector<vector<T>>& graph_neighbor_dis,
+	vector<bool>& current_graph_neighbor_deleted,
+	int src, double eps_vg, vector<T>& dis, vector<bool>& mark)
+{
+	const double max_error = 1e-5;
+	struct QueueNode{
+		T dis;
+		int node_index;
+		QueueNode(){}
+		QueueNode(int _node_index, double _dis) {
+			dis = _dis;
+			node_index = _node_index;
+		}
+		bool operator<(const QueueNode& other)const{
+			return dis > other.dis;
+		}
+	};
+
+	fill(dis.begin(), dis.end(), JiajunMaxDist);
+	fill(mark.begin(), mark.end(), false);
+
+	priority_queue<QueueNode> que;
+	dis[src] = 0;
+	mark[src] = true;
+	T max_dis_radius = 0;
+	map<int, int> node_map;
+	for (int i = 0; i < graph_neighbor[src].size(); ++i) {
+		int v = graph_neighbor[src][i];
+		T d = graph_neighbor_dis[src][i];
+		max_dis_radius = max(max_dis_radius, d);
+		dis[v] = d;
+		que.push(QueueNode(v, d));
+		node_map[v] = i;
+	}
+	int cnt = 0;
+	while (!que.empty()) {
+		QueueNode u = que.top();
+		cnt++;
+		que.pop();
+		if (mark[u.node_index]) continue;
+		mark[u.node_index] = true;
+		if (u.dis > max_dis_radius) {
+			break;
+		}
+		bool found_flag = false;
+		for (int i = 0; i < graph_neighbor[u.node_index].size(); ++i) {
+			int v = graph_neighbor[u.node_index][i];
+			T d = graph_neighbor_dis[u.node_index][i];
+			if (u.node_index == v) {
+				continue;
+			}
+			if (u.dis + d < dis[v] * (1 + eps_vg)) {
+				if (src == 0) {
+					//printf("v %d\n", v);
+				}
+				QueueNode b;
+				b.node_index = v;
+				b.dis = min(u.dis + d, dis[v]);
+				dis[v] = b.dis;
+				current_graph_neighbor_deleted[node_map[v]] = true;
+				que.push(b);
+			}
+		}
+	}
+	if (src == 0) {
+		printf("cnt %d\n", cnt);
+	}
+	//printf("cnt %d\n", cnt);
+	if (false) {
+		for (int v : graph_neighbor[src]) {
+			dis[v] = JiajunMaxDist;
+			mark[v] = false;
+		}
+		dis[src] = JiajunMaxDist;
+		mark[src] = false;
+	}
+}
+
+
 template<class T>
 void readInputFile(const string& svg_file_name,
 			  vector<vector<int>>& graph_neighbor,
@@ -2305,9 +2381,20 @@ void dijkstraPruningThread(int thread_id, int thread_num, int node_number,
 	else {
 		end = node_number - 1;
 	}
-
+	ElapasedTime time_once;
+	double past_time = 0;
 	for (int i = begin; i <= end; ++i) {
-		dijkstra_pruning<T>(graph_neighbor, 
+		if (time_once.getTime() - past_time > 5) {
+			past_time = time_once.getTime();
+			char buf[128];
+			double percent = (double)(i-begin)  * 100. / double(end - begin + 1);
+			double current_time = time_once.getTime();
+			double remain_time = current_time / percent * (100 - percent);
+			printf("Computed %.0lf percent, time %lf, estimate_remain_time %lf\n",
+				percent, current_time, remain_time);
+		}
+
+		dijkstra_pruning_disk_graph<T>(graph_neighbor, 
 		graph_neighbor_dis, graph_neighbor_deleted[i], i,
 		eps_vg, dis, mark);
 	}
@@ -2412,6 +2499,7 @@ void svg_precompute_ich_multithread_before_pruning(const string& input_obj_name,
 	char buf[1024];
 	sprintf(buf, "%s_DGGICH%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
 	svg_file_name = string(buf);
+	printf("svg filename is %s\n", svg_file_name.c_str());
 	int svg_file_exists = PathFileExists(svg_file_name.c_str());
 	if (svg_file_exists == 1)
 	{
@@ -2879,3 +2967,4 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 
 
 }
+
