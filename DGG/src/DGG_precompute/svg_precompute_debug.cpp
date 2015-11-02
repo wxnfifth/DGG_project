@@ -132,7 +132,7 @@ void dijkstraPruningThreadDebug(int thread_id, int thread_num, int node_number,
 				percent, current_time, remain_time);
 		}
 
-		dijkstra_pruning_disk_graph_debug<T>(graph_neighbor,
+		dijkstra_pruning_induced_graph_debug<T>(graph_neighbor,
 			graph_neighbor_dis, graph_neighbor_deleted[i], i,
 			eps_vg, dis, mark);
 		if (i == 0) {//debug here!!
@@ -290,6 +290,96 @@ void wxn_pruning_debug(const string& svg_file_name, double eps_vg, string& test_
 
 
 
+}
+
+
+template <class T>
+void dijkstra_pruning_induced_graph_debug(const vector<vector<int>>&  graph_neighbor,
+	const vector<vector<T>>& graph_neighbor_dis,
+	vector<bool>& current_graph_neighbor_deleted,
+	int src, double eps_vg, vector<T>& dis, vector<bool>& mark)
+{
+	//int node_number = graph_neighbor.size();
+	//vector<T> dis(node_number);
+	//vector<bool> mark(node_number);
+	//fill(dis.begin(), dis.end(), JiajunMaxDist);
+	//fill(mark.begin(), mark.end(), false);
+	const double max_error = 1e-5;
+	struct QueueNode{
+		T dis;
+		int node_index;
+		QueueNode(){}
+		QueueNode(int _node_index, double _dis) {
+			dis = _dis;
+			node_index = _node_index;
+		}
+		bool operator<(const QueueNode& other)const{
+			return dis > other.dis;
+		}
+	};
+	priority_queue<QueueNode> que;
+	dis[src] = 0;
+	mark[src] = true;
+	//printf("line 1834\n");
+	map<int, int> node_map;
+	//printf("sz %d\n", graph_neighbor[src].size());
+	for (int i = 0; i < graph_neighbor[src].size(); ++i) {
+		int v = graph_neighbor[src][i];
+		//printf("src %d i %d v %d ", src, i, v);
+		T d = graph_neighbor_dis[src][i];
+		//printf("d %lf\n", d);
+		dis[v] = d;
+		que.push(QueueNode(v, d));
+		//printf("line 1844\n");
+		node_map[v] = i;
+		//printf("line 1845\n");
+	}
+	//printf("line 1842\n");
+	int cnt = 0;
+	while (!que.empty()) {
+		QueueNode u = que.top();
+		cnt++;
+		que.pop();
+		if (mark[u.node_index]) continue;
+		if (src == 0) {
+			//if (cnt < 4) {
+			//printf("u %d ", u.node_index);
+			//}
+		}
+		mark[u.node_index] = true;
+		bool found_flag = false;
+		for (int i = 0; i < graph_neighbor[u.node_index].size(); ++i) {
+			int v = graph_neighbor[u.node_index][i];
+			T d = graph_neighbor_dis[u.node_index][i];
+			//if (src == 0 && v == 205) {
+			//	printf("u %d v %d d %lf\n", u.node_index, v, d);
+			//}
+			if (fabs(dis[v] - JiajunMaxDist) < max_error || u.node_index == v) {
+				continue;
+			}
+			if (u.dis + d < dis[v] * (1 + eps_vg)) {
+				if (src == 0) {
+					//printf("v %d\n", v);
+				}
+				QueueNode b;
+				b.node_index = v;
+				b.dis = min(u.dis + d, dis[v]);
+				dis[v] = b.dis;
+				current_graph_neighbor_deleted[node_map[v]] = true;
+				que.push(b);
+			}
+		}
+	}
+	if (src == 0) {
+		printf("cnt %d\n", cnt);
+	}
+	//printf("cnt %d\n", cnt);
+	for (int v : graph_neighbor[src]) {
+		dis[v] = JiajunMaxDist;
+		mark[v] = false;
+	}
+	dis[src] = JiajunMaxDist;
+	mark[src] = false;
 }
 
 

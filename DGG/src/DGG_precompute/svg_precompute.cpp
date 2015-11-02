@@ -2495,7 +2495,6 @@ void svg_precompute_ich_multithread_before_pruning(const string& input_obj_name,
 												   string& svg_file_name, double const_for_theta, 
 												   int thread_num, double& ich_multi_time)
 {
-
 	char buf[1024];
 	sprintf(buf, "%s_DGGICH%.10lf_c%.0lf.binary", input_obj_name.substr(0, input_obj_name.length() - 4).c_str(), eps_vg, const_for_theta);
 	svg_file_name = string(buf);
@@ -2505,7 +2504,6 @@ void svg_precompute_ich_multithread_before_pruning(const string& input_obj_name,
 	{
 		return;
 	}
-
 
 	ElapasedTime total_t;
 	double theta = asin(sqrt(eps_vg));
