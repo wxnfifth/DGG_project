@@ -132,7 +132,7 @@ void dijkstraPruningThreadDebug(int thread_id, int thread_num, int node_number,
 				percent, current_time, remain_time);
 		}
 
-		dijkstra_pruning_induced_graph_debug<T>(graph_neighbor,
+		dijkstra_pruning_disk_graph_debug<T>(graph_neighbor,
 			graph_neighbor_dis, graph_neighbor_deleted[i], i,
 			eps_vg, dis, mark);
 		if (i == 0) {//debug here!!
