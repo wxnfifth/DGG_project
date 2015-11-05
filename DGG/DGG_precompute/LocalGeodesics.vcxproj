@@ -213,6 +213,7 @@
     <ClInclude Include="..\src\MMP\MyList.h" />
     <ClInclude Include="..\src\svg_definition.h" />
     <ClInclude Include="..\src\WXN\triangle.h" />
+    <ClInclude Include="..\src\WXN\wxnBuffer.h" />
     <ClInclude Include="..\src\WXN\wxnMath.h" />
     <ClInclude Include="..\src\WXN\wxnTime.h" />
     <ClInclude Include="..\src\WXN\wxn_dijstra.h" />

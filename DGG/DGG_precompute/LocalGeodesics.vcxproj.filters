@@ -203,5 +203,8 @@
     <ClInclude Include="..\src\DGG_precompute\svg_precompute_debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\WXN\wxnBuffer.h">
+      <Filter>WXN</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

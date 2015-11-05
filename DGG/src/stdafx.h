@@ -37,8 +37,11 @@
 using namespace std;
 
 const double DOUBLE_EPSILON = 1e-10;
-const double LENGTH_EPSILON_CONTROL = 1e-6;
-const double PI = 3.14159265359;
-const double RateOfNormalShift = 1.5e-3;
-const double ToleranceOfConvexAngle = 5e-3;
+const double LENGTH_EPSILON_CONTROL = 1e-12;
+const double PI = 3.14159265358979;
+const double RateOfNormalShift = 0;
+const double ToleranceOfConvexAngle = 1e-8;
+
+const double JiajunMaxDist(1e5);
+
 // TODO: reference additional headers your program requires here

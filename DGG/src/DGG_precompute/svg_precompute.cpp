@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include <windows.h>
 #include "Shlwapi.h"
-#include "wxnTime.h"
+#include "wxn\wxnTime.h"
+#include "wxn\wxnBuffer.h"
 #include "svg_precompute.h"
 #include "ICH\RichModel.h"
 #include "ICH\ICHWithFurtherPriorityQueue.h"
@@ -18,60 +19,7 @@
 #include <random>
 
 bool flag_first_output = true;
-struct WxnBuffer{
-	char* buf;
-	int len;
-	int capacity;
-	ofstream output_file;
-	WxnBuffer() {
-		buf = nullptr;
-		len = 0;
-		capacity = 0;
-	}
-	WxnBuffer(const string& output_filename) {
-		output_file.open(output_filename.c_str(), ios::out | ios::binary);
-		capacity = 16 * 1024 * 1024;
-		buf = new char[capacity];
-		len = 0;
-	}
-	void open(const string& output_filename) {
-		output_file.open(output_filename.c_str(), ios::out | ios::binary);
-		capacity = 16 * 1024 * 1024;
-		buf = new char[capacity];
-		len = 0;
-	}
 
-	void addStruct(const void* const ptr, int struct_size)
-	{
-		//fwrite(ptr, struct_size, 1, file);
-		//return;
-		if (len + struct_size > capacity) {
-			//fwrite(buf, sizeof(char), len, file);
-			output_file.write(buf, len);
-			len = 0;
-		}
-		if (struct_size > capacity) {
-			fprintf(stderr, "str too large!");
-			exit(1);
-		}
-		memcpy((void*)(buf + len), ptr, struct_size);
-		len += struct_size;
-	}
-
-	void close() {
-		if (len != 0) {
-			output_file.write(buf, len);
-			len = 0;
-		}
-		output_file.close();
-	}
-
-	~WxnBuffer() {
-		if (buf != nullptr) {
-			delete[] buf;
-		}
-	}
-};
 
 string get_DGG_filename(const string& input_obj_name, const string& method_name, double eps_vg, double const_for_theta)
 {
@@ -121,16 +69,9 @@ void svg_precompute_fix_neighbor(const string& input_obj_name, const int fixed_k
   ElapasedTime time_once;
 
   double dis_time_total(0);
-  double past_time(0);
   //#pragma omp parallel for
   for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
-
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
-    }
+    time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
     ElapasedTime dis_time;
     int source_index = tmp_source;
     double farthest = 0.0;
@@ -217,15 +158,8 @@ void svg_precompute_fix_neighbor_debug(const string& input_obj_name, const int f
 	ElapasedTime time_once;
 
 	double dis_time_total(0);
-	double past_time(0);
-	//#pragma omp parallel for
-	//for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
 	for (int tmp_source = 0; tmp_source < 10; ++tmp_source) {
-		if (time_once.getTime() -  past_time > 5 ) {
-			past_time = time_once.getTime();
-			char buf[128];
-			time_once.printTime(buf);
-		}
+		time_once.printEstimateTime(5, (double)tmp_source / 5);
 		ElapasedTime dis_time;
 		int source_index = tmp_source;
 		double farthest = 0.0;
@@ -477,17 +411,11 @@ void svg_precompute_jiajun(const string& input_obj_name, double eps_vg, string& 
   ElapasedTime time_once;
 
   double dis_time_total(0);
-  double past_time(0);
   //end_vertex_index = 0;
 
   for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
+	  time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
 
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
-    }
     ElapasedTime dis_time;
     int source_index = tmp_source;
     vector<int> srcs;
@@ -603,17 +531,9 @@ void svg_precompute_mmp(const string& input_obj_name, const int fixed_k, string&
 	ElapasedTime time_once;
 
 	double dis_time_total(0);
-	double past_time(0);
-	//end_vertex_index = 10;
 
 	for (int tmp_source = begin_vertex_index; tmp_source <= end_vertex_index; ++tmp_source) {
-
-		if (time_once.getTime() - past_time > 5) {
-			past_time = time_once.getTime();
-			char buf[128];
-			sprintf(buf, "Computed %.0lf percent", (double)tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-			time_once.printTime(buf);
-		}
+		time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
 		ElapasedTime dis_time;
 		int source_index = tmp_source;
 		vector<int> srcs;
@@ -717,20 +637,11 @@ void svg_precompute(const string& input_obj_name, const int fixed_k, string& svg
   ElapasedTime time_once;
 
   double dis_time_total(0);
-  double past_time(0);
   //#pragma omp parallel for
   for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
 
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-	  double percent = (double)tmp_source  * 100. / double(end_vertex_index - begin_vertex_index + 1);
-	  double current_time = time_once.getTime();
-	  double remain_time = current_time / percent * (100 - percent);
-	  printf("Computed %.0lf percent, time %lf, estimate_remain_time %lf\n",
-		  percent, current_time, remain_time);
-    }
-    ElapasedTime dis_time;
+	  time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
+	  ElapasedTime dis_time;
     int source_index = tmp_source;
     double farthest = 0.0;
     //Step 2: Construct a group of source points;
@@ -822,16 +733,9 @@ void svg_precompute_debug(const string& input_obj_name, const int fixed_k) {
 
 	ElapasedTime time_once;
 	double dis_time_total(0);
-	double past_time(0);
-	//#pragma omp parallel for
 	for (int tmp_source = begin_vertex_index; tmp_source <= end_vertex_index; ++tmp_source) {
 
-		if (time_once.getTime() - past_time > 5) {
-			past_time = time_once.getTime();
-			char buf[128];
-			sprintf(buf, "Computed %.0lf percent", (double)tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-			time_once.printTime(buf);
-		}
+		time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
 		ElapasedTime dis_time;
 		int source_index = tmp_source;
 		double farthest = 0.0;
@@ -954,18 +858,11 @@ void svg_precompute_hy(const string& input_obj_name, double eps_vg, string& svg_
   ElapasedTime time_once;
 
   double dis_time_total(0);
-  double past_time(0);
-  //end_vertex_index = 0;
 
   for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
 
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
-    }
-    ElapasedTime dis_time;
+	  time_once.printEstimateTime(5, (double)tmp_source / (end_vertex_index - begin_vertex_index));
+	  ElapasedTime dis_time;
     int source_index = tmp_source;
     vector<int> srcs;
     srcs.push_back(source_index);
@@ -1337,17 +1234,9 @@ void getFanOutput(const vector<int>& dests, const vector<double>& angles,
 void svg_precompute_ich_vert(int source , int total_vert, CRichModel& model,
 						   	 double eps_vg, double theta, WxnBuffer& wxn_buffer,
 							 bool is_debug_mode, ElapasedTime& time_once,
-							 double& past_time, double& average_degree)
+							 double& average_degree, int start_vert)
 {
-	if (time_once.getTime() - past_time > 5) {
-		past_time = time_once.getTime();
-		double percent = (double)source  * 100. / double(total_vert);
-		double current_time = time_once.getTime();
-		double remain_time = current_time / percent * (100 - percent);
-		printf("Computed %.0lf percent, time %lf, estimate_remain_time %lf\n",
-					percent, current_time, remain_time);
-		//time_once.printTime(buf);
-	}
+	time_once.printEstimateTime(5, (double)(source - start_vert) / total_vert);
 
 	vector<int> dests;
 	vector<double> angles;
@@ -1388,15 +1277,9 @@ void svg_precompute_ich_debug(const string& input_obj_name, const string& debug_
 	CRichModel model(input_obj_name);
 	model.Preprocess();
 
-	double past_time = 0;
 	double average_degree = 0;
 	for (int i = 0; i < node_number; ++i) {
-		if (time_once.getTime() - past_time > 5) {
-			past_time = time_once.getTime();
-			char buf[128];
-			sprintf(buf, "Computed %.0lf percent", (double)i  * 100. / double(node_number));
-			time_once.printTime(buf);
-		}
+		time_once.printEstimateTime(5, (double)i / double(node_number));
 
 		BodyHeadOfSVG body_head;
 		input_file.read((char*)&body_head, sizeof(body_head));
@@ -1456,9 +1339,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 	wxn_buffer.addStruct(&head_of_svg, sizeof(head_of_svg));
 	ElapasedTime time_once;
 
-	double past_time;
 	double average_degree = 0;
-	//if (!is_debug_mode) {
 	if (true) {
 		int start_vert = 0;
 		int end_vert = model.GetNumOfVerts() - 1;
@@ -1467,7 +1348,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 			svg_precompute_ich_vert(source, total_vert, model,
 				eps_vg, theta, wxn_buffer,
 				is_debug_mode, time_once,
-				past_time, average_degree);
+				average_degree, start_vert);
 		}
 	}
 	else {
@@ -1481,7 +1362,7 @@ void svg_precompute_ich(const string& input_obj_name, double eps_vg, string& svg
 			svg_precompute_ich_vert(i, total_vert, model,
 				eps_vg, theta, wxn_buffer,
 				is_debug_mode, time_once,
-				past_time, average_degree);
+				average_degree, 0);
 		}
 	}
 	wxn_buffer.close();
@@ -1536,8 +1417,6 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
   ElapasedTime time_once;
 
   double dis_time_total(0);
-  double past_time(0);
-  //end_vertex_index = 0;
 
   double t_propagate=0;
   double t_backtrace=0;
@@ -1546,12 +1425,7 @@ void svg_precompute_hy_pruning(const string& input_obj_name, double eps_vg, stri
 
   for (int tmp_source = begin_vertex_index;tmp_source <= end_vertex_index;++tmp_source) {
 
-    if (time_once.getTime() -  past_time > 5 ) {
-      past_time = time_once.getTime();
-      char buf[128];
-      sprintf(buf, "Computed %.0lf percent", (double) tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
-      time_once.printTime(buf );
-    }
+	  time_once.printEstimateTime(5, (double)tmp_source  * 100. / (end_vertex_index - begin_vertex_index));
     ElapasedTime dis_time;
     int source_index = tmp_source;
     vector<int> srcs;
@@ -2105,15 +1979,9 @@ void ichPropogateHead(const HeadOfSVG& head, const string& part_svg_filename, do
 	wxn_buffer.addStruct(&head, sizeof(head));
 	ElapasedTime time_once;
 
-	double past_time;
 	double average_degree = 0;
 	for (int source = head.begin_vertex_index; source <= head.end_vertex_index; ++source) {
-		if (time_once.getTime() - past_time > 5) {
-			past_time = time_once.getTime();
-			char buf[128];
-			sprintf(buf, "Computed %.0lf percent", (double)(source - head.begin_vertex_index) * 100. / (head.end_vertex_index - head.begin_vertex_index));
-			time_once.printTime(buf);
-		}
+		time_once.printEstimateTime(5, (double)(source - head.begin_vertex_index) / (head.end_vertex_index - head.begin_vertex_index));
 
 		vector<int> dests;
 		vector<double> angles;

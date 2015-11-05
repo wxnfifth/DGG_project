@@ -2,7 +2,6 @@
 #define _SVG_PRECOMPUTE_H_
 #include "stdafx.h"
 
-const double JiajunMaxDist(1e5);
 
 
 string get_DGG_filename(const string& input_obj_name, const string& method_name, double eps_vg, double const_for_theta);

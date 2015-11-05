@@ -62,6 +62,9 @@ public:
   void addLine(const CPoint3D&p0, const CPoint3D& p1, const double len);
   void addLines(const vector<CPoint3D>& pts);
   void write_to_file(const string& filename);
+  void write_path_points_to_file(const vector<CPoint3D>& pts,
+						    	 const vector<IntersectionWithPath>& resultingPath,
+								 const string& filename);
 
 };
 

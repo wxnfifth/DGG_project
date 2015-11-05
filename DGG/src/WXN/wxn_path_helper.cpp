@@ -328,12 +328,12 @@ void output_faces(const CRichModel* model_ptr, const set<int>& faces, const stri
 void output_cylinder(const string& filename, const vector<CPoint3D>& verts, const vector<CBaseModel::CFace>& faces)
 {
 	FILE* cylinder_file;
-  fopen_s(&cylinder_file,filename.c_str(), "w");
-	for (auto& p:verts) {
-		fprintf(cylinder_file, "v %lf %lf %lf\n" , p.x, p.y, p.z);
+	fopen_s(&cylinder_file, filename.c_str(), "w");
+	for (auto& p : verts) {
+		fprintf(cylinder_file, "v %.10lf %.10lf %.10lf\n", p.x, p.y, p.z);
 	}
-	for (auto& f:faces) {
-		fprintf(cylinder_file, "f %d %d %d\n" , f[0] , f[1], f[2]);
+	for (auto& f : faces) {
+		fprintf(cylinder_file, "f %d %d %d\n", f[0], f[1], f[2]);
 	}
 	fclose(cylinder_file);
 }
@@ -400,7 +400,8 @@ void CylinderPath::cntGeodesicPaths(CRichModel& model, int v0, const vector<int>
 				cnt_is_vert++;
 			}
 		}
-		if (cnt_is_vert != 2) {
+		if (cnt_is_vert != 2 || (v0 == 0 && v == 2170)) {
+			printf("2170 angle %.10lf * 2PI\n", model.AngleSum(v) / 2 / M_PI);
 			printf("v0 %d v_dest %d dis %.10lf vert_in_path %d :", v0, v, ich_algoritm.m_InfoAtVertices[v].disUptodate, cnt_is_vert);
 			for (auto& p : paths) {
 				if (p.isVertex) {
@@ -408,6 +409,12 @@ void CylinderPath::cntGeodesicPaths(CRichModel& model, int v0, const vector<int>
 				}
 			}
 			printf("\n");
+		}
+		if (v0 == 0 && v == 2812) {
+			CylinderPath path(0.00001);
+			path.addLines(path_points);
+			path.write_to_file("path_0_to_2812_exact.obj");
+			path.write_path_points_to_file(path_points, paths , "path_0_to_2812_exact_points.txt");
 		}
 	}
 }
@@ -462,3 +469,29 @@ void CylinderPath::addLines(const vector<CPoint3D>& pts)
 void CylinderPath::write_to_file(const string& filename) {
 	output_cylinder(filename, verts_, faces_);
 }
+
+
+void CylinderPath::write_path_points_to_file(const vector<CPoint3D>& pts,
+	const vector<IntersectionWithPath>& resultingPath,
+	const string& filename) 
+{
+	FILE* cylinder_file;
+	fopen_s(&cylinder_file, filename.c_str(), "w");
+	double dis = 0;
+	for (int i = 1; i < pts.size(); ++i) {
+		dis += (pts[i - 1] - pts[i]).Len();
+	}
+	printf("dis %.10lf\n", dis);
+	int cnt = 0;
+	for (auto& p : pts) {
+		auto result_p = resultingPath[cnt];
+		if (result_p.isVertex) {
+			fprintf(cylinder_file, "vertex_point %d %.10lf %.10lf %.10lf\n", result_p.index , p.x, p.y, p.z);
+		} else {
+			fprintf(cylinder_file, "edge_point %.10lf %.10lf %.10lf\n" , p.x, p.y, p.z);
+		}
+		cnt++;
+	}
+	fclose(cylinder_file);
+}
+
