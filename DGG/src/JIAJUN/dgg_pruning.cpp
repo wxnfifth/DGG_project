@@ -136,54 +136,7 @@ namespace JIAJUN_DGG_PRUNING{
 
 
   }
-  void DGG::readWxnBinary_new(const char* svg_filename)
-  {
-    {
-      std::ifstream input_file (svg_filename, std::ios::in | std::ios::binary);
-      HeadOfSVG head_of_svg;
-      input_file.read( (char*)&head_of_svg , sizeof(head_of_svg));
-      N = head_of_svg.num_of_vertex;
-      origin_neigh_num.resize(N);
-      degree = new int[N+1];
-      degree[0] = 0;
-      for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
-        BodyHeadOfSVG body_head;
-        input_file.read( (char*)&body_head , sizeof(body_head));
-        origin_neigh_num[i] = body_head.neighbor_num;
-        degree[i+1] = degree[i] + body_head.neighbor_num;
-        for(int j = 0; j < body_head.neighbor_num;++j){ 
-          BodyPartOfSVGWithRange body_part;
-          input_file.read((char*)&body_part , sizeof(body_part));
-        }
-      }
-      input_file.close();
-    }
-    {
-      std::ifstream input_file(svg_filename, std::ios::in | std::ios::binary);
-      edge = new SVGEdge[degree[N]+100];
-      HeadOfSVG head_of_svg;
-      input_file.read( (char*)&head_of_svg , sizeof(head_of_svg));
-      //printf("%d", degree[N]);
-      for(int i = 0; i < N; ++i) {
-        BodyHeadOfSVG body_head;
-        input_file.read( (char*)&body_head , sizeof(body_head));
-        for(int j = degree[i]; j < degree[i+1]; ++j){
-          BodyPartOfSVGWithRange body_part;
-          input_file.read((char*)&body_part , sizeof(body_part));
-          //printf("%d\t", __temp__tempSVGEdge__.v);
-          edge[j].v = body_part.dest_index;
-          edge[j].dis = body_part.dest_dis;
-          edge[j].deleted = 0;
-          edge[j].begin_pos = body_part.begin_pos;
-          edge[j].end_pos = body_part.end_pos;
-          edge[j].pos = j - degree[i];
-        }
-      }
-    }
-
-
-  }
-
+ 
 #if _debug
   void SVG::dijkstra(int src, double * dis, bool * mark)
   {
@@ -556,18 +509,5 @@ namespace JIAJUN_DGG_PRUNING{
 		dgg.writeSVGBinary(output_filename.c_str());
 	}
 
-    void dgg_pruning_new(const std::string& input_file_name, double eps, std::string& output_filename, double& prune_time)
-    {
-      DGG dgg;
-      dgg.readWxnBinary_new(input_file_name.c_str());
-      dgg.eps = eps;
-      fprintf(stderr,"Before: %d\n", dgg.degree[dgg.N]);
-      ElapasedTime t;
-      dgg.pruning();
-      prune_time = t.getTime();
-      fprintf(stderr,"After: %d\n", dgg.degree[dgg.N]);
-      output_filename = input_file_name.substr(0,input_file_name.length()-7) + "_pruning.binary";
-      dgg.writeSVGBinary_new(output_filename.c_str());
-    }
 
   }
