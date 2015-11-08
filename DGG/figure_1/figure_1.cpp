@@ -368,7 +368,14 @@ int main_old()
 
 }
 
-int main()
+
+int main() {
+
+
+
+}
+
+int main_figure_backup()
 {
 	int source_vert = 93598;
 	//int source_vert = 32042;
