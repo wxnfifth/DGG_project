@@ -19,14 +19,14 @@
     <Filter Include="JIAJUN">
       <UniqueIdentifier>{fe1d67e0-07f0-4e85-9040-96aaa647a854}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ICH">
-      <UniqueIdentifier>{63cc2b7c-7c66-4e67-b0a1-c54f1047df19}</UniqueIdentifier>
-    </Filter>
     <Filter Include="WXN">
       <UniqueIdentifier>{7f100d80-4b53-45a7-8c2f-52873400b69b}</UniqueIdentifier>
     </Filter>
     <Filter Include="YXMetric">
       <UniqueIdentifier>{e21932a0-4c10-446d-87f6-7d5ccd7c027d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JIAJUN\ICH">
+      <UniqueIdentifier>{63cc2b7c-7c66-4e67-b0a1-c54f1047df19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -37,28 +37,28 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\BaseModel.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\Geometry.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\ICHWithFurtherPriorityQueue.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\ImprovedCHWithEdgeValve.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\Point3D.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\PreviousCH.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ICH\RichModel.cpp">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClCompile>
     <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp">
       <Filter>JIAJUN</Filter>
@@ -102,28 +102,28 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\BaseModel.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\ExactMethodForDGP.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\Geometry.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\ICHWithFurtherPriorityQueue.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\ImprovedCHWithEdgeValve.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\Point3D.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\PreviousCH.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ICH\RichModel.h">
-      <Filter>ICH</Filter>
+      <Filter>JIAJUN\ICH</Filter>
     </ClInclude>
     <ClInclude Include="..\src\JIAJUN\dgg_pruning.h">
       <Filter>JIAJUN</Filter>
