@@ -1,23 +1,19 @@
 import os
 import sys
 import math
+import argparse
 
 #print sys.argv
 
-obj_path = sys.argv[1]
 
-k_start = int(sys.argv[2])
-k_end = int(sys.argv[3])
-sample_num = int(sys.argv[4])
-#eps_start > eps_end
-k_list = []
-k_list.append(k_start)
-if sample_num > 1:
-    log_interval = (math.log10(k_end) - math.log10(k_start)) / (sample_num -1)
-    for i in range(1,sample_num-1):
-        k_list.append(int(math.pow(10,math.log10(k_start) + log_interval * i)))
-    
-    k_list.append(k_end)
+parser = argparse.ArgumentParser()
+parser.add_argument("-i","--input_name", type=str, help="input file name",default='')
+parser.add_argument('input_k',type=int,nargs='+',help = 'list of k')
+args = parser.parse_args()
+
+obj_path = args.input_name
+
+k_list = args.input_k
 
 print k_list
     

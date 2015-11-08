@@ -5,24 +5,26 @@ import numpy
 
 obj_name = sys.argv[1]
 model_name = obj_name[:-4]
-noise_percent_list = numpy.arange(0,0.4,0.05)
+noise_percent_list = numpy.arange(0,0.45,0.05)
 
-k = 500
+k = int(sys.argv[2])
 
 print noise_percent_list
 
-error_file = '%s_svg_noise_data.txt' % (model_name)
+error_file = '%s_svg_noise_data_k_%d.txt' % (model_name,k)
 
 for noise_percent in noise_percent_list:
-    cmd_line = '..\\..\\bin\\figure_sphere.exe %s %lf' % (obj_name, noise_percent)
+    cmd_line = '..\\..\\bin\\figure_sphere.exe %s s %lf' % (obj_name, noise_percent)
     print cmd_line
     os.system(cmd_line)
-    output_obj_name = '%s_noise%.2lf.obj' % (model_name, noise_percent)
+    output_obj_name = '%s_noise_strength_%.2lf.obj' % (model_name, noise_percent)
     output_model_name = output_obj_name[:-4]
-    precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
-    svg_precompute_cmd_line = '..\\..\\bin\\dgg_precompute.exe %s %d n 2> %s' % (output_obj_name,k,precompute_log_filename)
+    precompute_log_filename = 'dgg_precompute_%s_k%d.log' % (output_model_name,k)
+    svg_binary_filename = '%s_SVG_k%d.binary' % (output_model_name,k)
+    #if not os.path.isfile(svg_binary_filename):
+    svg_precompute_cmd_line = '..\\..\\bin\\DGG_precompute.exe %s %d n 2> %s' % (output_obj_name,k,precompute_log_filename)
+    print svg_precompute_cmd_line    
     os.system(svg_precompute_cmd_line)
-    svg_binary_filename = '%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant)
     svg_log_filename=svg_binary_filename[:-7] + '_dij.log'
     svg_dij_cmd_line = '..\\..\\bin\\dgg_lc.exe %s %s dij 2> %s' %(output_obj_name,svg_binary_filename,svg_log_filename)
     print svg_dij_cmd_line
@@ -37,7 +39,7 @@ for noise_percent in noise_percent_list:
             elif lst[0] == 'total_average_running_time':
                 average_running_time = float(lst[1])                
     with open(error_file,'a') as f:
-        f.write( '%lf\t%lf\t%lf\t%lf\n' % (noise_percent,average_neigh,average_error,average_running_time))
+        f.write( '%lf\t%lf\t%.10lf\t%lf\n' % (noise_percent,average_neigh,average_error,average_running_time))
     
     
 

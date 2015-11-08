@@ -4,27 +4,33 @@ import math
 import numpy
 
 obj_name = sys.argv[1]
-model_name = obj_name[:-4]
-noise_percent_list = numpy.arange(0,0.4,0.05)
+model_name = os.path.basename(obj_name)[:-4]
+dir_name = os.path.dirname(obj_name)
+obj_path = obj_name
+constant = 20
 
-k = 500
+noise_percent_list = numpy.arange(0,0.45,0.05)
+
+eps = float(sys.argv[2])
 
 print noise_percent_list
 
-error_file = '%s_svg_noise_data.txt' % (model_name)
+error_file = os.path.join(dir_name,'%s_dgg_noise_data_eps_%lf.txt' % (model_name,eps))
 
 for noise_percent in noise_percent_list:
-    cmd_line = '..\\..\\bin\\figure_sphere.exe %s %lf' % (obj_name, noise_percent)
-    print cmd_line
-    os.system(cmd_line)
-    output_obj_name = '%s_noise%.2lf.obj' % (model_name, noise_percent)
-    output_model_name = output_obj_name[:-4]
-    precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
-    svg_precompute_cmd_line = '..\\..\\bin\\dgg_precompute.exe %s %d n 2> %s' % (output_obj_name,k,precompute_log_filename)
+    output_obj_name = os.path.join(dir_name,'%s_noise_strength_%.2lf.obj' % (model_name, noise_percent))
+    if not os.path.isfile(output_obj_name):
+        cmd_line = '..\\..\\bin\\figure_sphere.exe %s s %lf' % (obj_name, noise_percent)
+        print cmd_line
+        os.system(cmd_line)
+    output_model_name = os.path.basename(output_obj_name)[:-4]
+    precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (output_model_name,eps,constant))
+    svg_precompute_cmd_line = '..\\..\\bin\\DGG_precompute.exe %s %lf m %d 4 2> %s 1>&2' % (output_obj_name,eps,constant,precompute_log_filename)
+    print svg_precompute_cmd_line    
     os.system(svg_precompute_cmd_line)
-    svg_binary_filename = '%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant)
-    svg_log_filename=svg_binary_filename[:-7] + '_dij.log'
-    svg_dij_cmd_line = '..\\..\\bin\\dgg_lc.exe %s %s dij 2> %s' %(output_obj_name,svg_binary_filename,svg_log_filename)
+    svg_binary_filename = os.path.join(dir_name,'%s_DGG%f_c%d_pruning.binary' % (output_model_name,eps,constant))
+    svg_log_filename=svg_binary_filename[:-7] + '_hy.log'
+    svg_dij_cmd_line = '..\\..\\bin\\dgg_lc.exe %s %s hy 2> %s 1>&2' %(output_obj_name,svg_binary_filename,svg_log_filename)
     print svg_dij_cmd_line
     os.system(svg_dij_cmd_line)
     with open(svg_log_filename,'r') as f:
@@ -37,7 +43,7 @@ for noise_percent in noise_percent_list:
             elif lst[0] == 'total_average_running_time':
                 average_running_time = float(lst[1])                
     with open(error_file,'a') as f:
-        f.write( '%lf\t%lf\t%lf\t%lf\n' % (noise_percent,average_neigh,average_error,average_running_time))
+        f.write( '%lf\t%lf\t%.10lf\t%lf\n' % (noise_percent,average_neigh,average_error,average_running_time))
     
     
 

@@ -19,10 +19,10 @@ for noise_percent in noise_percent_list:
     os.system(cmd_line)
     output_obj_name = '%s_noise%.2lf.obj' % (model_name, noise_percent)
     output_model_name = output_obj_name[:-4]
-    precompute_log_filename = os.path.join(dir_name, 'dgg_precompute_%s_%f_%d.log' % (model_name,eps,constant))
+    precompute_log_filename = 'dgg_precompute_%s_k%d.log' % (output_model_name,k)
     svg_precompute_cmd_line = '..\\..\\bin\\dgg_precompute.exe %s %d n 2> %s' % (output_obj_name,k,precompute_log_filename)
     os.system(svg_precompute_cmd_line)
-    svg_binary_filename = '%s_DGG%f_c%d_pruning.binary' % (model_name,eps,constant)
+    svg_binary_filename = '%s_SVG_k%d.binary' % (output_model_name,k)
     svg_log_filename=svg_binary_filename[:-7] + '_dij.log'
     svg_dij_cmd_line = '..\\..\\bin\\dgg_lc.exe %s %s dij 2> %s' %(output_obj_name,svg_binary_filename,svg_log_filename)
     print svg_dij_cmd_line
