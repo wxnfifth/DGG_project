@@ -76,7 +76,7 @@ void check_errors(const string& obj_file_name, const string& svg_file_name, cons
 	}
 	else if (method == "lll") {
 		s_graph = new LC_LLL<T>();
-		s_graph->read_svg_file_with_angle((string)svg_file_name);//load the precomputed infomation 
+		s_graph->readDGGFileNotLoadAngle((string)svg_file_name);//load the precomputed infomation 
 	}
 	else if (method == "fim") {
 		s_graph = new LC_FIM<T>();//temp modify
@@ -163,9 +163,9 @@ void check_errors(const string& obj_file_name, const string& svg_file_name, cons
 			if (e.second > eps) {
 				cnt++;
 			}
-			max_error = max(e.second, eps);
+			max_error = max(e.second, max_error);
 		}
-		fprintf(stderr, "max_error %lf\n", max_error);
+		fprintf(stderr, "max_error %.10lf\n", max_error);
 	}
 
 	HANDLE current_process = GetCurrentProcess();
@@ -177,9 +177,6 @@ void check_errors(const string& obj_file_name, const string& svg_file_name, cons
 	}
 
 	delete s_graph;
-
-
-
 }
 
 
@@ -193,7 +190,7 @@ int main(int argc, char** argv)
   bool test_performance = false;
   string obj_file_name;
   string svg_file_name;
-  FloatType float_type{ DGG_FLOAT };
+  FloatType float_type{ DGG_DOUBLE };
 
   if (argc < 4) {
      fprintf(stderr,"parameter insufficient !\n usage SVG_LC.exe [obj_file_name] [svg_file_name] [dij  or lll or fim or hy] [flt or dbl]\n");

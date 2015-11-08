@@ -158,22 +158,21 @@ public:
 	  double average_radius(0.0);
 
 	  for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
+		 // printf("i %d ", i);
 		  BodyHeadOfSVG body_head;
 		  input_file.read((char*)&body_head, sizeof(body_head));
 		  average_neighbor_number += (double)body_head.neighbor_num;
 		  std::vector<BodyPartOfSVGWithAngle> body_parts;
 		  for (int j = 0; j < body_head.neighbor_num; ++j){
-			  BodyPartOfSVGWithAngle body_part;
+			  BodyPartOfSVGWithAngle body_part;   
 			  input_file.read((char*)&body_part, sizeof(body_part));
 			  body_parts.push_back(body_part);
 		  }
 		  allocate_for_neighbor_small(body_head.source_index, body_parts.size());
 		  for (int j = 0; j < body_parts.size(); ++j) {
-			  for (int j = 0; j < body_parts.size(); ++j) {
 				  addedge(body_head.source_index,
 					  body_parts[j].dest_index,
 					  body_parts[j].dest_dis);
-			  }
 		  }
 		  if (i > 0 && i % (head_of_svg.num_of_vertex / 10) == 0){
 			  std::cerr << "read " << i * 100 / head_of_svg.num_of_vertex << " percent \n";
@@ -184,16 +183,6 @@ public:
 	  fprintf(stderr, "average_neigh %lf\n", average_neighbor_number);
 	  std::cerr << "reading done..\n";
 	  input_file.close();
-
-	  for (int i = 0; i < graph_pos_in_neighbor.size(); ++i) {
-		  graph_pos_in_neighbor[i].resize(graph_neighbor[i].size());
-		  for (int j = 0; j < graph_neighbor[i].size(); ++j) {
-			  int neigh = graph_neighbor[i][j];
-			  int pos = graph_neighbor_map[neigh][i];
-			  graph_pos_in_neighbor[i][j] = pos;
-		  }
-	  }
-
 	  return 0;
   }
 
