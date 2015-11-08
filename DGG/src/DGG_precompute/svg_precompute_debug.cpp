@@ -387,7 +387,7 @@ void dijkstra_pruning_induced_graph_debug(const vector<vector<int>>&  graph_neig
 		if (mark[u.node_index]) continue;
 		if (src == 0) {
 			//if (cnt < 4) {
-			//printf("u %d ", u.node_index);
+			//printf("u %d ", u.node_index);c
 			//}
 		}
 		mark[u.node_index] = true;

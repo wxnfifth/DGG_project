@@ -183,16 +183,6 @@ public:
 	  fprintf(stderr, "average_neigh %lf\n", average_neighbor_number);
 	  std::cerr << "reading done..\n";
 	  input_file.close();
-
-	  for (int i = 0; i < graph_pos_in_neighbor.size(); ++i) {
-		  graph_pos_in_neighbor[i].resize(graph_neighbor[i].size());
-		  for (int j = 0; j < graph_neighbor[i].size(); ++j) {
-			  int neigh = graph_neighbor[i][j];
-			  int pos = graph_neighbor_map[neigh][i];
-			  graph_pos_in_neighbor[i][j] = pos;
-		  }
-	  }
-
 	  return 0;
   }
 
