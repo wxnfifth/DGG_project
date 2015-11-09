@@ -134,8 +134,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\figure_1\DelaunayMesh.cpp" />
-    <ClCompile Include="..\src\figure_1\ExactGeodesic.cpp" />
+    <ClCompile Include="..\src\figure_1\DelaunayMesh.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\figure_1\ExactGeodesic.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\figure_1\Geometry.cpp" />
     <ClCompile Include="..\src\figure_1\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

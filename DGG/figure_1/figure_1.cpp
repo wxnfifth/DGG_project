@@ -370,7 +370,17 @@ int main_old()
 
 
 int main() {
+	int source_vert = 89834;
+	string obj_file_name = "armadillo_nf346k.obj";
 
+	string obj_prefix = obj_file_name.substr(0, obj_file_name.length() - 4);
+	CRichModel model(obj_file_name);
+	model.Preprocess();
+
+	vector<double> correct_dis;
+
+	getICHDistance(model, source_vert, correct_dis);
+	outputDistanceField(model, correct_dis, obj_prefix + "_ich.obj");
 
 
 }

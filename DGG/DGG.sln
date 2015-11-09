@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
+# Visual Studio Express 2013 for Windows Desktop
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DGG_LC", "DGG_LC\SVG_LC.vcxproj", "{A20CA87B-32EE-493D-A286-63A48A00C4C0}"
@@ -118,6 +118,7 @@ Global
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|Win32.ActiveCfg = Release|Win32
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|Win32.Build.0 = Release|Win32
 		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|x64.ActiveCfg = Release|x64
+		{C7373DAB-DC42-4718-9A09-AEA9D231D1F8}.Release|x64.Build.0 = Release|x64
 		{184D4890-F3FA-4F66-9159-71BB1BD101A2}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{184D4890-F3FA-4F66-9159-71BB1BD101A2}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{184D4890-F3FA-4F66-9159-71BB1BD101A2}.Debug|Win32.ActiveCfg = Debug|Win32
