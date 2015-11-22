@@ -2088,14 +2088,14 @@ void dijkstra_pruning_induced_graph(const vector<vector<int>>&  graph_neighbor,
 			//if (src == 0 && v == 205) {
 			//	printf("u %d v %d d %lf\n", u.node_index, v, d);
 			//}
-			if (v > 5003) {
-				printf("v %d i %d\n", v, i);
-				printf("u.node_index %d size %d\n", u.node_index, graph_neighbor[u.node_index].size());
-				for (auto& tmp_v : graph_neighbor[u.node_index]){
-					printf("tmp_v %d ", tmp_v);
-				}
-				printf("!!\n");
-			}
+			//if (v > 5003) {
+			//	printf("v %d i %d\n", v, i);
+			//	printf("u.node_index %d size %d\n", u.node_index, graph_neighbor[u.node_index].size());
+			//	for (auto& tmp_v : graph_neighbor[u.node_index]){
+			//		printf("tmp_v %d ", tmp_v);
+			//	}
+			//	printf("!!\n");
+			//}
 
 			if (fabs(dis[v] - JiajunMaxDist) < max_error || u.node_index == v) {
 				continue;
@@ -2237,7 +2237,7 @@ void readInputFile(const string& svg_file_name,
 	printf("___________________________________________ read file !\n");
 	printf("___________________________________________ read file !\n");
 	for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
-		printf("i %d ", i);
+		//printf("i %d ", i);
 		BodyHeadOfSVG body_head;
 		input_file.read((char*)&body_head, sizeof(body_head));
 		std::vector<BodyPartOfSVGWithAngle> body_parts;
@@ -2247,7 +2247,7 @@ void readInputFile(const string& svg_file_name,
 			body_parts.push_back(body_part);
 		}
 		int u = body_head.source_index;
-		printf("u %d ", u);
+		//printf("u %d ", u);
 		int number_of_neighbor = body_parts.size();
 		graph_neighbor[u].reserve(number_of_neighbor);
 		graph_neighbor_dis[u].reserve(number_of_neighbor);
@@ -2260,10 +2260,10 @@ void readInputFile(const string& svg_file_name,
 		
 	}
 	input_file.close();
-	{
-		int tmp = 4993;
-		printf("______________________\nsize of graph_neighbor_deleted[%d].size() = %d\n", tmp, graph_neighbor_deleted[tmp].size());
-	}
+	//{
+	//	int tmp = 4993;
+	//	printf("______________________\nsize of graph_neighbor_deleted[%d].size() = %d\n", tmp, graph_neighbor_deleted[tmp].size());
+	//}
 }
 
 

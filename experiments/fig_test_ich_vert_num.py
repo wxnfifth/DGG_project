@@ -19,7 +19,7 @@ def process_one_obj(obj_name, method, input_const, const_method, eps, error_file
         constant = input_const
     #constant = 5
     precompute_log_filename = os.path.join(dir_name,'dggich_precompute_%s_%.10f_%d.log' % (model_name,eps,constant))
-    svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %.10f im %d 3 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
+    svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %.10f im %d 4 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
     svg_binary_filename = os.path.join(dir_name,'%s_DGGICH%.10f_c%d_pruning.binary' % (model_name,eps,constant))
     if not os.path.isfile(svg_binary_filename):
         print svg_precompute_cmd_line
@@ -81,28 +81,31 @@ def main():
     parser.add_argument('-m','--method',type=str,choices=['fan','lc','dggdij'], help='chois is fan or lc or dggdij')
     parser.add_argument('-o','--input_const',type=int,help = 'input chost')
     parser.add_argument('-c','--const_method',type=str,choices=['angle','choose'], help='const_method is choose or angle')
+    parser.add_argument('-d','--dir_name',type=str,help='input dir name')
+    parser.add_argument('-p','--prefix_name',type=str,help='prefix dir name')
+    parser.add_argument('-e','--input_eps',type=float,help='input eps')
     args = parser.parse_args()
 
 
     method = args.method
     input_const = args.input_const
     const_method = args.const_method
-    input_eps = 1e-4
-    model_name = 'bunny'
-    dir_name = 'bunny_preprocessing_time'
+    input_eps = args.input_eps
+    model_name = args.prefix_name
+    dir_name = args.dir_name
     if method == 'fan':
-        error_file = os.path.join(dir_name,'%s_error_file_ich_fan_cc%.0f.txt' % (model_name,input_const))
+        error_file = os.path.join(dir_name,'%s_error_%f_file_ich_fan_cc%.0f.txt' % (model_name,input_eps,input_const))
     elif method == 'lc':
-        error_file = os.path.join(dir_name,'%s_error_file_ich_lc_cc%.0f.txt' % (model_name,input_const))
+        error_file = os.path.join(dir_name,'%s_error_%f_file_ich_lc_cc%.0f.txt' % (model_name,input_eps,input_const))
     elif method == 'dggdij':
-        error_file = os.path.join(dir_name,'%s_error_file_ich_dggdij_cc%.0f.txt' % (model_name,input_const))
+        error_file = os.path.join(dir_name,'%s_error_%f_file_ich_dggdij_cc%.0f.txt' % (model_name,input_eps,input_const))
     else:
         print 'method is fan or lc'
         quit()
     face_num_list = args.face_num
     obj_name_list = []
     for f in face_num_list:
-        obj_name_list.append(os.path.join(dir_name,'bunny_nf%dk.obj' % f))
+        obj_name_list.append(os.path.join(dir_name,'%s_nf%dk.obj' % (model_name, f)))
     print obj_name_list
     for obj_name in obj_name_list:
         process_one_obj(obj_name, method, input_const, const_method, input_eps, error_file)
