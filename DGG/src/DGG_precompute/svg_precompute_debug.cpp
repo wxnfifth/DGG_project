@@ -199,7 +199,7 @@ void dijkstraPruningThreadDebug(int thread_id, int thread_num, int node_number,
 }
 
 template<class T>
-void readInputFile(const string& svg_file_name,
+void readInputFile_debug(const string& svg_file_name,
 	vector<vector<int>>& graph_neighbor,
 	vector<vector<T>>& graph_neighbor_dis,
 	vector<vector<bool>>& graph_neighbor_deleted,
@@ -253,7 +253,7 @@ void wxn_pruning_debug(const string& svg_file_name, double eps_vg, string& test_
 	vector<vector<bool>> graph_neighbor_deleted;
 	int node_number;
 
-	readInputFile(svg_file_name, graph_neighbor, graph_neighbor_dis, graph_neighbor_deleted, node_number);
+	readInputFile_debug(svg_file_name, graph_neighbor, graph_neighbor_dis, graph_neighbor_deleted, node_number);
 
 	ElapasedTime t;
 	{

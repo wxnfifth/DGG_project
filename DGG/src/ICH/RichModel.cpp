@@ -147,9 +147,9 @@ void CRichModel::CollectAndArrangeNeighs()
 }
 
 void CRichModel::ComputeAnglesAroundVerts()
-{	
-  m_neighAngleSum.resize(GetNumOfVerts());
-  m_angle_sum.resize(GetNumOfVerts());
+{
+	m_neighAngleSum.resize(GetNumOfVerts());
+	m_angle_sum.resize(GetNumOfVerts());
 	m_FlagsForCheckingConvexVerts.resize(GetNumOfVerts());
 
 
@@ -159,8 +159,8 @@ void CRichModel::ComputeAnglesAroundVerts()
 	for (int i = 0; i < (int)m_NeighsAndAngles.size(); ++i)
 	{
 		m_NeighsAndAngles[i].resize(Neigh(i).size());
-    m_neighAngleSum[i].resize(Neigh(i).size()+1);
-    fill(m_neighAngleSum[i].begin(), m_neighAngleSum[i].end(), 0);
+		m_neighAngleSum[i].resize(Neigh(i).size() + 1);
+		fill(m_neighAngleSum[i].begin(), m_neighAngleSum[i].end(), 0);
 	}
 	for (int i = 0; i < (int)m_NeighsAndAngles.size(); ++i)
 	{
@@ -178,30 +178,30 @@ void CRichModel::ComputeAnglesAroundVerts()
 				}
 				double l = Edge(Neigh(i)[j].first).length;
 				double r = Edge(Neigh(i)[next].first).length;
-				double b = Edge(Edge(Neigh(i)[j].first).indexOfRightEdge).length;				
+				double b = Edge(Edge(Neigh(i)[j].first).indexOfRightEdge).length;
 				m_NeighsAndAngles[i][j].second = acos((l * l + r * r - b * b) / (2 * l * r));
 			}
-			angleSum += m_NeighsAndAngles[i][j].second;			
+			angleSum += m_NeighsAndAngles[i][j].second;
 		}
-    m_angle_sum[i] = angleSum;
+		m_angle_sum[i] = angleSum;
 		//m_FlagsForCheckingConvexVerts[i] = (angleSum < 2 * PI - ToleranceOfConvexAngle);
 		m_FlagsForCheckingConvexVerts[i] = (angleSum < 2 * PI);
 	}
-  
-  for (int i = 0; i < (int)m_NeighsAndAngles.size(); ++i) {
-    auto& neighs = Neigh(i);
-    auto& sum_angle = m_neighAngleSum[i];
-    sum_angle[0] = 0;
-    for (int j = 1; j <= neighs.size(); ++j) {
-      sum_angle[j] = sum_angle[j-1] + neighs[j-1].second;
-    }
-  }
-  //auto& neighs = model.Neigh(source_index);
-  //vector<double> sum_angle(neighs.size()+1);
-  //sum_angle[0] = 0;
-  //for (int j = 1; j <= neighs.size(); ++j) {
-  //  sum_angle[j] = sum_angle[j-1] + neighs[j-1].second;
-  //}
+
+	for (int i = 0; i < (int)m_NeighsAndAngles.size(); ++i) {
+		auto& neighs = Neigh(i);
+		auto& sum_angle = m_neighAngleSum[i];
+		sum_angle[0] = 0;
+		for (int j = 1; j <= neighs.size(); ++j) {
+			sum_angle[j] = sum_angle[j - 1] + neighs[j - 1].second;
+		}
+	}
+	//auto& neighs = model.Neigh(source_index);
+	//vector<double> sum_angle(neighs.size()+1);
+	//sum_angle[0] = 0;
+	//for (int j = 1; j <= neighs.size(); ++j) {
+	//  sum_angle[j] = sum_angle[j-1] + neighs[j-1].second;
+	//}
 
 
 }

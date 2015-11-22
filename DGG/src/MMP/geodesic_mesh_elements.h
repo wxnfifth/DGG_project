@@ -443,6 +443,31 @@ public:
 		add(f->adjacent_vertices()[2]);
 		multiply(1./3.);
 	};
+	SurfacePoint(face_pointer f,
+		double b0,
+		double b1) :		//set the surface point in the center of the face
+		m_p(f)
+	{
+		double b2 = 1 - b0 - b1;
+		Point3D p0 = *(f->adjacent_vertices()[0]);
+		p0.multiply(b0);
+		Point3D p1 = *(f->adjacent_vertices()[1]);
+		p1.multiply(b1);
+		Point3D p2 = *(f->adjacent_vertices()[2]);
+		p2.multiply(b2);
+		set(0, 0, 0);
+		add(&p0);
+		add(&p1);
+		add(&p2);
+		//multiply(1./3.);
+	};
+	SurfacePoint(face_pointer f,
+		const CPoint3D& p) :		//set the surface point in the center of the face
+		m_p(f)
+	{
+		set(p.x, p.y, p.z);
+	};
+
 
 	SurfacePoint(edge_pointer e,		//set the surface point in the middle of the edge
 				 double a = 0.5):		

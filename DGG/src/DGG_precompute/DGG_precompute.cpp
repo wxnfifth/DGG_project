@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 	svg_precompute_debug(input_file_name, fixed_K);
   } else if (method == "j") {
     svg_precompute_jiajun(input_file_name, eps_vg, svg_file_name);
-  }  else if (method == "h") {
+  } else if (method == "h") {
     svg_precompute_hy(input_file_name, eps_vg, svg_file_name, const_for_theta);    
   } else if (method == "p") {
     svg_precompute_hy_pruning(input_file_name, eps_vg, svg_file_name, const_for_theta);
@@ -78,8 +78,7 @@ int main(int argc, char** argv)
 	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
   } else if (method == "imd") {
 	  svg_precompute_ich_multithread_debug(input_file_name, eps_vg, svg_file_name, const_for_theta, thread_num);
-  }
-  else if (method == "imn") {
+  } else if (method == "imn") {
 	  string dgg_file_name = get_DGG_filename(input_file_name, "DGGICH", eps_vg, const_for_theta);
 	  string filename_prefix = dgg_file_name.substr(0, dgg_file_name.length() - 7);
 	  //dgg_file_name = filename_prefix + "_pruning.binary";
@@ -87,9 +86,9 @@ int main(int argc, char** argv)
 	  string neigh_filename = filename_prefix + ".neighbor";
 	  svg_precompute_ich_debug(input_file_name, dgg_file_name, neigh_filename);
   } else if (method == "if") {
-	  svg_precompute_ich(input_file_name, eps_vg, svg_file_name, const_for_theta, false);
+	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, 1);
 	  printf("svg_file_name %s\n", svg_file_name.c_str());
-	  svg_precompute_LiuYongjin_fixing(input_file_name, eps_vg, svg_file_name);
+	  svg_precompute_LiuYongjin_fixing(input_file_name, eps_vg, const_for_theta, svg_file_name);
   }
 
   return 0;

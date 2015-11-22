@@ -35,7 +35,7 @@ void svg_precompute_ich_multithread_before_pruning(const string& input_obj_name,
 void svg_precompute_ich_multithread(const string& input_obj_name, double eps_vg, string& svg_file_name, double const_for_theta, int thread_num);
 
 
-void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, const string& svg_file_name);
+void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, double const_for_theta, const string& svg_file_name);
 
 void svg_precompute_ich_debug(const string& input_obj_filename, const string& debug_svg_filename, const string& neighbor_filename);
 

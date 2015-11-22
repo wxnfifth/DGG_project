@@ -33,7 +33,7 @@ struct BodyPartOfSVG{
     int dest_index;
     double dest_dis;
     BodyPartOfSVG(){}
-    BodyPartOfSVG(int _dest_index , float _dest_dis ):
+    BodyPartOfSVG(int _dest_index , double _dest_dis ):
         dest_index(_dest_index),
         dest_dis(_dest_dis)
     {
@@ -49,7 +49,7 @@ struct BodyPartOfSVGWithAngle{
     int begin_pos; 
     int end_pos;
     BodyPartOfSVGWithAngle(){}
-    BodyPartOfSVGWithAngle(int _dest_index , float _dest_dis, float _angle, int _begin_pos, int _end_pos):
+    BodyPartOfSVGWithAngle(int _dest_index , double _dest_dis, double _angle, int _begin_pos, int _end_pos):
         dest_index(_dest_index),
         dest_dis(_dest_dis),
         angle(_angle),
@@ -65,7 +65,7 @@ struct BodyPartOfSVGWithAngle{
 struct BodyPartOfSVGWithK : BodyPartOfSVG{
     int rank_k;
     BodyPartOfSVGWithK(){}
-    BodyPartOfSVGWithK(int _dest_index , float _dest_dis , int _rank_k ):
+    BodyPartOfSVGWithK(int _dest_index , double _dest_dis , int _rank_k ):
         BodyPartOfSVG(_dest_index , _dest_dis),
         rank_k(_rank_k){}
     bool operator<(const BodyPartOfSVGWithK& other)const{
@@ -78,7 +78,7 @@ struct SVGEdgeWithAngle{
     double dest_dis;
     double angle;
     SVGEdgeWithAngle(){}
-    SVGEdgeWithAngle(int _dest_index , float _dest_dis, float _angle):
+    SVGEdgeWithAngle(int _dest_index , double _dest_dis, double _angle):
         dest_index(_dest_index),
         dest_dis(_dest_dis),
         angle(_angle)
@@ -95,7 +95,7 @@ struct BodyPartOfSVGWithRange{
     short int begin_pos;
     short int end_pos;
     BodyPartOfSVGWithRange(){}
-    BodyPartOfSVGWithRange(int _dest_index , float _dest_dis, short int _begin_pos, short int _end_pos):
+    BodyPartOfSVGWithRange(int _dest_index , double _dest_dis, short int _begin_pos, short int _end_pos):
         dest_index(_dest_index),
         dest_dis(_dest_dis),
         begin_pos(_begin_pos),

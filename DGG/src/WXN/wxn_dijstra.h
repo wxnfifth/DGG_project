@@ -22,6 +22,7 @@ protected:
   std::vector<std::vector<T>> graph_neighbor_dis;
   std::vector<std::vector<pair<int16_t, int16_t>>> graph_neighbor_begin_end_pos;
   std::vector<std::map<int,int16_t>> graph_neighbor_map;
+  std::vector<std::vector<T>> graph_neighbor_angle;
 
 public:
   SparseGraph(){
@@ -34,10 +35,10 @@ public:
   const std::vector<T>& graphNeighborDis(int v) {
 	  return graph_neighbor_dis[v];
   }
-  std::vector<std::vector<T>> graph_neighbor_angle;
   const std::vector<T>& graphNeighborAngle(int v) {
 	  return graph_neighbor_angle[v];
   }
+
 private:
 
   void initialize(int _node_number) {
@@ -409,7 +410,6 @@ public:
     std::reverse(path_nodes.begin() , path_nodes.end());
   }
 
-  
   void findShortestDistance(int source)
   {
     fathers.resize(node_number_);

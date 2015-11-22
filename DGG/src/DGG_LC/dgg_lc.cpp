@@ -99,7 +99,7 @@ void check_errors(const string& obj_file_name, const string& svg_file_name, cons
 
 	vector<pair<double, double>> erros_list;//<dis,error>
 	std::mt19937 rng;
-	std::uniform_int_distribution<int> uint_dist(0, s_graph->NodeNum() - 1);
+	std::uniform_int_distribution<int> uint_dist(0, rich_model.GetNumOfVerts() - 1);
 	double average_time = 0;
 	int iteration_times = 10;
 	double max_dis = 0;

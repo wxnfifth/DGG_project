@@ -84,7 +84,10 @@ public:
 	inline int GetSubindexToVert(int root, int neigh) const;
 	inline const CEdge& Edge(int edgeIndex) const;	
 	inline const CSimpleEdge& SimpleEdge(int simpleEdgeIndex)const;//add by wxn
-	inline const vector<pair<int, double> >& Neigh(int root) const;	
+	inline const vector<pair<int, double> >& Neigh(int root) const;
+	inline void PointOnFaceNeigh(int face_index, const CPoint3D& p, vector<int>& neigh_verts, vector<double>& neigh_angles) const;//add by wxn
+
+
   inline const vector<double>& NeighAngleSum(int root) const;
   inline int IncidentVertex(int edgeIndex) const;
 	inline double AngleSum(int vertIndex) const;
@@ -241,9 +244,29 @@ const vector<double>& CRichModel::NeighAngleSum(int root) const
 
 const vector<pair<int, double> >& CRichModel::Neigh(int root) const
 {
-    //printf("root %d\n" , root);
 	return m_NeighsAndAngles[root];
 }
+
+void CRichModel::PointOnFaceNeigh(int face_index, const CPoint3D& p, vector<int>& neigh_verts, vector<double>& neigh_angles) const
+{
+	neigh_verts.clear();
+	neigh_angles.clear();
+	
+	double len_p_to_vert[3];
+	auto& f = Face(face_index);
+	for (int i = 0; i < 3; ++i) {
+		len_p_to_vert[i] = (p - Vert(f[i])).Len();
+	}
+	for (int i = 0; i < 3; ++i) {
+		double l = len_p_to_vert[i];
+		double r = len_p_to_vert[(i + 1) % 3];
+		double b = (Vert(f[i]) - Vert(f[(i + 1) % 3])).Len();
+		double angle = acos((l * l + r * r - b * b) / (2 * l * r));
+		neigh_verts.push_back(f[i]);
+		neigh_angles.push_back(angle);
+	}
+}
+
 
 double CRichModel::ProportionOnEdgeByImageAndPropOnLeftEdge(int edgeIndex, double x, double y, double proportion) const
 {
