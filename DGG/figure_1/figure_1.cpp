@@ -377,11 +377,27 @@ int main() {
 	CRichModel model(obj_file_name);
 	model.Preprocess();
 
-	vector<double> correct_dis;
+	//vector<double> correct_dis;
 
-	getICHDistance(model, source_vert, correct_dis);
-	outputDistanceField(model, correct_dis, obj_prefix + "_ich.obj");
+	//getICHDistance(model, source_vert, correct_dis);
+	//outputDistanceField(model, correct_dis, obj_prefix + "_ich.obj");
 
+	{
+		string dgg_filename = "Armadillo_nf346k_DGGICH0.000100_c20_pruning.binary";
+		vector<double> dgg_dis;
+		getDGGDistance(model, source_vert, dgg_filename, dgg_dis);
+		outputDistanceField(model, dgg_dis, obj_prefix + "_dgg_dis.obj");
+		printf("dgg_statis:\n");
+	}
+	{
+		string svg_filename = "Armadillo_nf346k_SVG_k518.binary";
+		vector<double> svg_dis;
+		getSVGDistance(model, source_vert, svg_filename, svg_dis);
+		outputDistanceField(model, svg_dis, obj_prefix + "_svg_dis.obj");
+	}
+
+
+	return 0;
 
 }
 
