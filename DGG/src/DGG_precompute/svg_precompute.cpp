@@ -14,11 +14,13 @@
 #include "wxn\wxn_path_helper.h"
 #include "wxn\wxn_dijstra.h"
 #include "YXMetric\YXPathTracer.h"
-#include "wxn\wxn_path_helper.h"
 #include <thread>
 #include <random>
 
 bool flag_first_output = true;
+#define WXN_PRINT_DEBUG() fprintf(stderr, "Current: ""at %s, line %d.  ", __FILE__, __LINE__)
+#define WXN_PRINT_DEBUG_LINE() fprintf(stderr, "Current: ""at %s, line %d.\n", __FILE__, __LINE__)
+#define PRINT_VAR(x) cout << #x << " "<< (x) << "\n";
 
 
 void computePointOnFaceNeighbors(int current_source_index, const CPoint3D& p, int face_index, // input 
@@ -1718,7 +1720,7 @@ void dggPropagateCompute(const int source_index, geodesic::Mesh& mesh, double ep
 	struct node {
 		int id;
 		double dis;
-		int operator<(const node & other) const{
+		int operator<(const node & other) const{  
 			return dis < other.dis;
 		}
 	};
@@ -2088,14 +2090,14 @@ void dijkstra_pruning_induced_graph(const vector<vector<int>>&  graph_neighbor,
 			//if (src == 0 && v == 205) {
 			//	printf("u %d v %d d %lf\n", u.node_index, v, d);
 			//}
-			if (v > 5003) {
-				printf("v %d i %d\n", v, i);
-				printf("u.node_index %d size %d\n", u.node_index, graph_neighbor[u.node_index].size());
-				for (auto& tmp_v : graph_neighbor[u.node_index]){
-					printf("tmp_v %d ", tmp_v);
-				}
-				printf("!!\n");
-			}
+			//if (v > 5003) {
+			//	printf("v %d i %d\n", v, i);
+			//	printf("u.node_index %d size %d\n", u.node_index, graph_neighbor[u.node_index].size());
+			//	for (auto& tmp_v : graph_neighbor[u.node_index]){
+			//		printf("tmp_v %d ", tmp_v);
+			//	}
+			//	printf("!!\n");
+			//}
 
 			if (fabs(dis[v] - JiajunMaxDist) < max_error || u.node_index == v) {
 				continue;
@@ -2232,12 +2234,9 @@ void readInputFile(const string& svg_file_name,
 	graph_neighbor_dis.resize(node_number);
 	graph_neighbor_deleted.reserve(node_number);
 	graph_neighbor_deleted.resize(node_number);  
-	printf("___________________________________________ read file !\n");
-	printf("___________________________________________ read file !\n");
-	printf("___________________________________________ read file !\n");
-	printf("___________________________________________ read file !\n");
+	//printf("___________________________________________ read file !\n");
 	for (int i = 0; i < head_of_svg.num_of_vertex; ++i) {
-		printf("i %d ", i);
+		//printf("i %d ", i);
 		BodyHeadOfSVG body_head;
 		input_file.read((char*)&body_head, sizeof(body_head));
 		std::vector<BodyPartOfSVGWithAngle> body_parts;
@@ -2247,7 +2246,7 @@ void readInputFile(const string& svg_file_name,
 			body_parts.push_back(body_part);
 		}
 		int u = body_head.source_index;
-		printf("u %d ", u);
+		//printf("u %d ", u);
 		int number_of_neighbor = body_parts.size();
 		graph_neighbor[u].reserve(number_of_neighbor);
 		graph_neighbor_dis[u].reserve(number_of_neighbor);
@@ -2260,10 +2259,6 @@ void readInputFile(const string& svg_file_name,
 		
 	}
 	input_file.close();
-	{
-		int tmp = 4993;
-		printf("______________________\nsize of graph_neighbor_deleted[%d].size() = %d\n", tmp, graph_neighbor_deleted[tmp].size());
-	}
 }
 
 
@@ -2810,16 +2805,15 @@ void cnt_percent(const CRichModel& model, SparseGraph<float>* s_graph)
 	printf("\n");
 }
 
-void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_vg, double const_for_theta, const string& svg_file_name)
-{
-	
-	double theta = asin(sqrt(eps_vg));
-	theta *= const_for_theta;    
 
-	SparseGraph<float>* s_graph = NULL;
+void svg_precompute_fixing_initial(const string& input_file_name, double eps_vg, double const_for_theta, const string& svg_file_name, //input
+	CRichModel& model, SparseGraph<float>* &s_graph, double& theta, geodesic::Mesh& mesh, YXPathTracer& path_tracer)
+{
+	theta = asin(sqrt(eps_vg));
+	theta *= const_for_theta;    //compute theta
+
 	s_graph = new LC_HY<float>();
 	s_graph->read_svg_file_with_angle((string)svg_file_name);
-	CRichModel model(input_file_name);
 	model.Preprocess();
 
 	std::vector<double> points;
@@ -2834,18 +2828,18 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 		fprintf(stderr, "something is wrong with the input file");
 		return;
 	}
-	geodesic::Mesh mesh;
 	mesh.initialize_mesh_data(points, faces);		//create internal
 
-	YXPathTracer path_tracer;
 	printf("model_file_name %s\n", input_file_name.c_str());
 	path_tracer.init(input_file_name.c_str());
-
 	dynamic_cast<LC_HY<float>*>(s_graph)->setModel(model);
 
-	vector<BodyHeadOfSVG> total_heads(model.GetNumOfVerts());
-	vector<vector<BodyPartOfSVGWithAngle>> total_parts(model.GetNumOfVerts());
+}
 
+void svg_precompute_fixing_initial_heads_and_parts(vector<BodyHeadOfSVG>& total_heads,
+												   vector<vector<BodyPartOfSVGWithAngle>>& total_parts,
+												   const CRichModel& model, SparseGraph<float>* s_graph)
+{ 
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
 		auto& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的geodesic distance 
 		auto& angles = s_graph->graphNeighborAngle(i); //i点到各个邻居的angle 
@@ -2854,31 +2848,45 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 		for (int j = 0; j < geo_dises.size(); ++j) {
 			current_parts.push_back(BodyPartOfSVGWithAngle(s_graph->graphNeighbor(i)[j], geo_dises[j], angles[j], 0, 0));
 		}
+		current_parts.swap(current_parts);
 		total_heads[i].source_index = i;
 		total_heads[i].neighbor_num = geo_dises.size();
-		total_parts[i].assign(current_parts.begin(), current_parts.end());
+		total_parts[i] = current_parts;
 	}
+}
 
+
+void svg_precompute_LiuYongjin_fixing(const string&  input_file_name, double eps_vg, double const_for_theta, const string& svg_file_name)
+{
+	SparseGraph<float>* s_graph = NULL;
+	CRichModel model(input_file_name);
+	double theta;
+	geodesic::Mesh mesh;
+	YXPathTracer path_tracer;
+	svg_precompute_fixing_initial(input_file_name, eps_vg, const_for_theta, svg_file_name, //input
+		model, s_graph, theta, mesh, path_tracer);
+
+	vector<BodyHeadOfSVG> total_heads(model.GetNumOfVerts());
+	vector<vector<BodyPartOfSVGWithAngle>> total_parts(model.GetNumOfVerts());
+
+	svg_precompute_fixing_initial_heads_and_parts(total_heads, total_parts, model, s_graph);
 
 	vector<PointOnFace> added_points_list; // 要加的点
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		WXN_PRINT_DEBUG();
+		PRINT_VAR(i);
 		auto& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的geodesic distance 
 		auto& angles = s_graph->graphNeighborAngle(i); //i点到各个邻居的angle 
 		auto& one_ring_neighs = model.Neigh(i); //i点的one-ring 邻居
 		auto& one_ring_sum_angle = model.NeighAngleSum(i);
-		//vector<double> one_ring_sum_angle(one_ring_neighs.size() + 1);//统计one-ring的角度的和
-		//one_ring_sum_angle[0] = 0;
-		//for (int j = 1; j < one_ring_sum_angle.size(); ++j) {
-		//	one_ring_sum_angle[j] = one_ring_sum_angle[j - 1] + one_ring_neighs[j - 1].second;
-		//}//统计one-ring的角度和结束
 		auto& current_head = total_heads[i];
-		//auto& current_part = total_parts[i];
 
 		double max_dis = 0;
 		max_dis = *max_element(geo_dises.begin(), geo_dises.end());
-
 		
 		for (int j = 0; j < angles.size(); ++j) {
+			WXN_PRINT_DEBUG();
+			PRINT_VAR(j);
 			double angles_diff{ 0 };
 			//double dis{ 0 };
 			if (j != angles.size() - 1) {
@@ -2892,7 +2900,9 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 			if (pos_in_percent >= 2) {
 				vector<double> divide_angles(pos_in_percent - 1);
 				for (int k = 0; k < divide_angles.size(); ++k) {
-					divide_angles[k] = angles[j] + (double)(k + 1) / ( double)pos_in_percent * angles_diff;
+					WXN_PRINT_DEBUG();
+					PRINT_VAR(k);
+					divide_angles[k] = angles[j] + (double)(k + 1) / (double)pos_in_percent * angles_diff;
 					CPoint3D p;
 					int face_index;					
 					findPointUsingPathTracer(model, i, one_ring_neighs[0].first, max_dis,
@@ -2900,28 +2910,42 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 
 					int current_source_index = model.GetNumOfVerts() + added_points_list.size();
 					current_head.neighbor_num++;
-					//printf("line 2903\n");
+					WXN_PRINT_DEBUG_LINE();
 					total_parts[i].push_back(BodyPartOfSVGWithAngle(current_source_index, max_dis, divide_angles[k], 0, 0));
+					WXN_PRINT_DEBUG_LINE();
 					//printf("line 2905\n");
 					added_points_list.push_back(PointOnFace(face_index, p));
+					//printf("line 2919\n");
 					BodyHeadOfSVG body_head;
 					std::vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
 					vector<double> dest_angles;
+					//printf("line 2922\n");
+					WXN_PRINT_DEBUG_LINE();
 					computePointOnFaceNeighbors(current_source_index, p, face_index,
 						mesh, eps_vg, theta, model,// input
 						body_head, body_parts_with_angle, dest_angles); // output
+					WXN_PRINT_DEBUG_LINE();
 
 					//printf("line 2881 computed pointonface neighs\n");
+					//printf("body_part size %d\n", body_parts_with_angle.size());
 					for (int t = 0; t < body_parts_with_angle.size(); ++t) {
+						WXN_PRINT_DEBUG();
+						PRINT_VAR(t);
 						int dest = body_parts_with_angle[t].dest_index;
 						double dis = body_parts_with_angle[t].dest_dis;
 						total_heads[dest].neighbor_num++;
+						//printf("line 2919 sz %d\n", (((size_t)(-1) / sizeof(BodyPartOfSVGWithAngle))));
+						//cout << "line 2919 sz " << (((size_t)(-1) / sizeof(BodyPartOfSVGWithAngle))) << "  ";
+						//printf("total_parts size %d dest %d\n", total_parts.size(), dest);  
+						
 						total_parts[dest].push_back(BodyPartOfSVGWithAngle(current_source_index, dis, dest_angles[t], 0, 0));
+						WXN_PRINT_DEBUG();
+						PRINT_VAR(dest);
 					}
-					//printf("line 2888 computed \n");
+					//cout << "line 2934\n";
 					total_heads.push_back(body_head);
 					total_parts.push_back(body_parts_with_angle);
-					//printf("line 2891\n");
+					//cout << "line 2938\n";
 					if (false) {
 						printf("body_head %d %d\n", body_head.source_index, body_head.neighbor_num);
 						for (auto& b : body_parts_with_angle) {
@@ -2929,6 +2953,7 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 						}
 					}
 				}
+//				printf("line 2946\n");
 				//printf("line 2899\n");
 			}
 			//printf("line 2901\n");
@@ -2992,103 +3017,109 @@ void svg_precompute_LiuYongjin_fixing(const string& input_file_name, double eps_
 	printf("added_points / verts_num %lf\n", (double)added_points_list.size() / model.GetNumOfVerts());
 
 	//printBallToObj(added_points_list, "added_points_list.obj", 0.001);
-	
+	delete s_graph;
 }
 
 void computePointOnFaceNeighbors(int current_source_index, const CPoint3D& p_source, int face_index_source, // input 
 	geodesic::Mesh& mesh, double eps_vg, double theta, const CRichModel& model,// input
 	BodyHeadOfSVG& body_header, vector<BodyPartOfSVGWithAngle>& body_parts_with_angle, vector<double>& dest_angles) // output
 {
-		vector<geodesic::SurfacePoint> sources;
-		sources.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index_source], p_source));
-		ElapasedTime tm_propagate; 
-		geodesic::GeodesicAlgorithmBase *algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh);
-		double step = 1.0;
-		const double eta = 100;
-		algorithm->step = step;
-		algorithm->binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
-		map<int, double> fixedDests;
-		algorithm->propagate_vg(sources, eps_vg, fixedDests);
+	WXN_PRINT_DEBUG_LINE();
+	vector<geodesic::SurfacePoint> sources;
+	sources.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index_source], p_source));
+	//printf("line 3023\n");
+	ElapasedTime tm_propagate;
+	WXN_PRINT_DEBUG_LINE();
+	//geodesic::GeodesicAlgorithmBase *algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh);
+	geodesic::GeodesicAlgorithmVGMMP algorithm(&mesh);
+	WXN_PRINT_DEBUG_LINE();
+	double step = 1.0;
+	const double eta = 100;
+	algorithm.step = step;
+	algorithm.binWidth = mesh.avg_edge() / sqrt((double)mesh.vertices().size()) * eta;
+	map<int, double> fixedDests;
+	//printf("line 3031\n");
+	algorithm.propagate_vg(sources, eps_vg, fixedDests);
+	//printf("line 3031\n");
+	ElapasedTime tm_backtrace;
 
-		ElapasedTime tm_backtrace;
+	vector<pair<int, double>> dests;
+	WXN_PRINT_DEBUG_LINE();
 
-		vector<pair<int, double>> dests;
+	for (auto& d : fixedDests) {
+		geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
+		double dis;
+		//printf("line 274\n");
+		algorithm.best_source(dest_p, dis);
+		dests.push_back(make_pair(d.first, d.second));
+	}
+	//printf("line 3043\n");
+	ElapasedTime tm_sort;
+	body_header = BodyHeadOfSVG(current_source_index, dests.size());
 
-		for (auto& d : fixedDests) {
-			geodesic::SurfacePoint dest_p = geodesic::SurfacePoint(&mesh.vertices()[d.first]);
-			double dis;
-			//printf("line 274\n");
-			algorithm->best_source(dest_p, dis);
-			dests.push_back(make_pair(d.first, d.second));
+	vector<int> neigh_verts;
+	vector<double> neigh_angles;
+	model.PointOnFaceNeigh(face_index_source, p_source, neigh_verts, neigh_angles);
+	vector<double> sum_angle(neigh_angles.size() + 1);
+	sum_angle[0] = 0;
+	for (int j = 1; j <= neigh_angles.size(); ++j) {
+		sum_angle[j] = sum_angle[j - 1] + neigh_angles[j - 1];
+	}
+
+	vector<double> angles(dests.size());
+	for (int i = 0; i < dests.size(); ++i) {
+		angles[i] = computeAngleFromMMP(mesh, dests[i].first, &algorithm,
+			neigh_verts, neigh_angles,
+			sum_angle, model, p_source);
+	}
+
+	dest_angles.clear();
+	dest_angles.resize(dests.size());
+	for (int i = 0; i < dests.size(); ++i) {
+		dest_angles[i] = computeAngleDestFromMMP(mesh, dests[i].first, &algorithm, model, p_source);
+	}
+	//printf("line 3012 computed dest_angles \n");
+
+	body_parts_with_angle.resize(dests.size());
+	for (int i = 0; i < dests.size(); ++i) {
+		auto b = dests[i];
+		BodyPartOfSVGWithAngle b_with_angle(b.first, b.second, angles[i], 0, 0);
+		body_parts_with_angle[i] = b_with_angle;
+	}
+	sort(body_parts_with_angle.begin(), body_parts_with_angle.end());
+
+	//printf("line 3025\n");
+	double angle_sum = sum_angle.back();
+	vector<double> tmp_angles(body_parts_with_angle.size() * 2);
+	for (int i = 0; i < body_parts_with_angle.size(); ++i) {
+		tmp_angles[i] = body_parts_with_angle[i].angle;
+	}
+	for (int i = body_parts_with_angle.size(); i < tmp_angles.size(); ++i) {
+		tmp_angles[i] = body_parts_with_angle[i - body_parts_with_angle.size()].angle + angle_sum;
+	}
+	for (int i = 0; i < body_parts_with_angle.size(); ++i) {//assume i is father
+		double father_angle = body_parts_with_angle[i].angle;
+		//based on father_angle as 0
+		double start_angle = M_PI - theta + father_angle;
+		double end_angle = angle_sum - (M_PI - theta) + father_angle;
+		if (start_angle > end_angle) {
+			body_parts_with_angle[i].begin_pos = -1;
+			body_parts_with_angle[i].end_pos = -1;
+			continue;
 		}
 
-		ElapasedTime tm_sort;
-		body_header = BodyHeadOfSVG(current_source_index, dests.size());
+		int start_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), start_angle) - tmp_angles.begin();
+		if (start_pos > 0) start_pos--;
+		int end_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), end_angle) - tmp_angles.begin();
 
-		vector<int> neigh_verts;
-		vector<double> neigh_angles;
-		model.PointOnFaceNeigh(face_index_source, p_source, neigh_verts, neigh_angles);
-		vector<double> sum_angle(neigh_angles.size() + 1);
-		sum_angle[0] = 0;
-		for (int j = 1; j <= neigh_angles.size(); ++j) {
-			sum_angle[j] = sum_angle[j - 1] + neigh_angles[j - 1];
-		}
+		if (start_pos >= body_parts_with_angle.size()) start_pos -= body_parts_with_angle.size();
+		if (end_pos >= body_parts_with_angle.size()) end_pos -= body_parts_with_angle.size();
+		body_parts_with_angle[i].begin_pos = start_pos;
+		body_parts_with_angle[i].end_pos = end_pos;
+	}
 
-		vector<double> angles(dests.size());
-		for (int i = 0; i < dests.size(); ++i) {
-			angles[i] = computeAngleFromMMP(mesh, dests[i].first, algorithm,
-				neigh_verts, neigh_angles,
-				sum_angle, model, p_source);
-		}
-
-		dest_angles.clear();
-		dest_angles.resize(dests.size());
-		for (int i = 0; i < dests.size(); ++i) {
-			dest_angles[i] = computeAngleDestFromMMP(mesh, dests[i].first, algorithm, model, p_source);
-		}
-		printf("line 3012 computed dest_angles \n");
-
-
-		body_parts_with_angle.resize(dests.size());
-		for (int i = 0; i < dests.size(); ++i) {
-			auto b = dests[i];
-			BodyPartOfSVGWithAngle b_with_angle(b.first, b.second, angles[i], 0, 0);
-			body_parts_with_angle[i] = b_with_angle;
-		}
-		sort(body_parts_with_angle.begin(), body_parts_with_angle.end());
-
-		printf("line 3025\n");
-		double angle_sum = sum_angle.back();
-		vector<double> tmp_angles(body_parts_with_angle.size() * 2);
-		for (int i = 0; i < body_parts_with_angle.size(); ++i) {
-			tmp_angles[i] = body_parts_with_angle[i].angle;
-		}
-		for (int i = body_parts_with_angle.size(); i < tmp_angles.size(); ++i) {
-			tmp_angles[i] = body_parts_with_angle[i - body_parts_with_angle.size()].angle + angle_sum;
-		}
-		for (int i = 0; i < body_parts_with_angle.size(); ++i) {//assume i is father
-			double father_angle = body_parts_with_angle[i].angle;
-			//based on father_angle as 0
-			double start_angle = M_PI - theta + father_angle;
-			double end_angle = angle_sum - (M_PI - theta) + father_angle;
-			if (start_angle > end_angle) {
-				body_parts_with_angle[i].begin_pos = -1;
-				body_parts_with_angle[i].end_pos = -1;
-				continue;
-			}
-
-			int start_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), start_angle) - tmp_angles.begin();
-			if (start_pos > 0) start_pos--;
-			int end_pos = lower_bound(tmp_angles.begin(), tmp_angles.end(), end_angle) - tmp_angles.begin();
-
-			if (start_pos >= body_parts_with_angle.size()) start_pos -= body_parts_with_angle.size();
-			if (end_pos >= body_parts_with_angle.size()) end_pos -= body_parts_with_angle.size();
-			body_parts_with_angle[i].begin_pos = start_pos;
-			body_parts_with_angle[i].end_pos = end_pos;
-		}
-
-		delete algorithm;
-		algorithm = NULL;
+	//delete algorithm;
+	//algorithm = NULL;
 }
 
 

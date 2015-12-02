@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "svg_precompute.h"
 #include "svg_precompute_debug.h"
-
+#include "svg_precompute_pseudo_edges.h"
 
 int main(int argc, char** argv)
 {
@@ -88,7 +88,8 @@ int main(int argc, char** argv)
   } else if (method == "if") {
 	  svg_precompute_ich_multithread(input_file_name, eps_vg, svg_file_name, const_for_theta, 1);
 	  printf("svg_file_name %s\n", svg_file_name.c_str());
-	  svg_precompute_LiuYongjin_fixing(input_file_name, eps_vg, const_for_theta, svg_file_name);
+	  svg_precompute_add_pseudo_edges(input_file_name, eps_vg, const_for_theta, svg_file_name);
+
   }
 
   return 0;

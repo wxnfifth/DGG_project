@@ -110,6 +110,9 @@ void YXPathTracer::computeSinglePathArbitraryStart(int start_edge,
     }
   }
   std::reverse(edge_sequece.begin() + 1 , edge_sequece.end());
+
+
+
   double current_angle = angle;
   int e;
   for (auto itr = edge_sequece.begin(); itr != edge_sequece.end(); ++itr) {
@@ -128,6 +131,10 @@ void YXPathTracer::computeSinglePathArbitraryStart(int start_edge,
   //while (current_angle > metric.edgeAngle[e]) {
   //  current_angle -= metric.edgeAngle[e];
   //  e = metric.getNextEdgeAroundVertex(e);
+  //}
+  //printf("current angle %lf\n", angle);
+  //for (auto e : edge_sequece) {
+	 // printf("tmp_e %d v0 %d v1 %d\n", e, metric.Edge(e).v1, metric.Edge(e).v2);
   //}
   computeSinglePath(e, current_angle, length, path);
 }

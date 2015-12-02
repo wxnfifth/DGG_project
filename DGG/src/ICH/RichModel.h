@@ -129,6 +129,7 @@ public:
 	inline int GetNeighborFaceIndexFromFace(int face_index,int sub_index)const;//add by wxn
 	inline int GetNeighborFaceIndexFromEdge(int edge_index)const;//add by wxn
 	inline int GetEdgeIndexFromTwoVertices(int leftVert, int rightVert) const;//addd by wxn
+	inline int GetFaceIndexFromTreeVertices(int v0, int v1, int v2) const;//addd by wxn
 	inline CPoint3D ComputeShiftPoint(int indexOfVert) const;
 	inline CPoint3D ComputeShiftPoint(int indexOfVert, double factor) const;
 	inline CPoint3D ComputeShiftPoint(const CPoint3D& pt, int simpleEdgeId,double factor) const;
@@ -511,8 +512,6 @@ inline const CRichModel::CEdge& CRichModel::GetEdgeFromFace(int faceIndex, int s
 	return Edge(0);
 }
 
-
-
 int CRichModel::GetNeighborFaceIndexFromEdge(int edge_index)const
 {
 	//neighFacesId[j] = initial_model_->Edge(initial_model_->Edge(edgeId[j]).indexOfReverseEdge).indexOfFrontFace;
@@ -531,6 +530,18 @@ int CRichModel::GetEdgeIndexFromTwoVertices(int leftVert, int rightVert) const
 	assert(subIndex != -1);
 	return Neigh(leftVert)[subIndex].first;
 }
+
+int CRichModel::GetFaceIndexFromTreeVertices(int v0, int v1, int v2) const//addd by wxn
+{
+	int edge_id = GetEdgeIndexFromTwoVertices(v0, v1);
+	int f0 = Edge(edge_id).indexOfFrontFace;
+	int f1 = Edge(Edge(edge_id).indexOfReverseEdge).indexOfFrontFace;
+	if (Face(f0)[0] == v2 || Face(f0)[1] == v2 || Face(f0)[2] == v2) return f0;
+	if (Face(f1)[0] == v2 || Face(f1)[1] == v2 || Face(f1)[2] == v2) return f1;
+	assert(false);
+	return 0;
+}
+
 
 double CRichModel::Curvature(int vertIndex) const
 {	
