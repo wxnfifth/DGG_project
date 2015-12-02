@@ -170,6 +170,7 @@
     <ClCompile Include="..\src\DGG_precompute\DGG_precompute.cpp" />
     <ClCompile Include="..\src\DGG_precompute\svg_precompute_debug.cpp" />
     <ClCompile Include="..\src\DGG_precompute\svg_precompute.cpp" />
+    <ClCompile Include="..\src\DGG_precompute\svg_precompute_pseudo_edges.cpp" />
     <ClCompile Include="..\src\ICH\BaseModel.cpp" />
     <ClCompile Include="..\src\ICH\ExactMethodForDGP.cpp" />
     <ClCompile Include="..\src\ICH\Geometry.cpp" />
@@ -191,6 +192,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\DGG_precompute\svg_precompute.h" />
     <ClInclude Include="..\src\DGG_precompute\svg_precompute_debug.h" />
+    <ClInclude Include="..\src\DGG_precompute\svg_precompute_pseudo_edges.h" />
     <ClInclude Include="..\src\DGG_precompute\targetver.h" />
     <ClInclude Include="..\src\DGG_precompute\wxnTime.h" />
     <ClInclude Include="..\src\ICH\BaseModel.h" />
@@ -227,6 +229,7 @@
     <ClInclude Include="..\src\YXMetric\YXPathTracer.h" />
     <ClInclude Include="..\src\YXMetric\YXSimpleHashMap.h" />
     <ClInclude Include="..\src\YXMetric\YXWhiteNoise.h" />
+    <ClInclude Include="svg_precompute_pseudo_edges.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -90,6 +90,9 @@
     <ClCompile Include="..\src\DGG_precompute\svg_precompute_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\DGG_precompute\svg_precompute_pseudo_edges.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\DGG_precompute\svg_precompute.h">
@@ -205,6 +208,12 @@
     </ClInclude>
     <ClInclude Include="..\src\WXN\wxnBuffer.h">
       <Filter>WXN</Filter>
+    </ClInclude>
+    <ClInclude Include="svg_precompute_pseudo_edges.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DGG_precompute\svg_precompute_pseudo_edges.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

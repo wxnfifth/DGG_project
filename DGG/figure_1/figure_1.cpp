@@ -3,6 +3,10 @@
 #include "ICH\ICHWithFurtherPriorityQueue.h"
 #include "wxn\wxn_dijstra.h"
 #include "wxn\wxnTime.h"
+#include "MMP\geodesic_algorithm_exact.h"
+#include "YXMetric\YXMetric.h"
+#include "wxn\wxn_path_helper.h"
+#include <random>
 //#include "figure_1\DelaunayMesh.h"
 
 void getICHDistance(const CRichModel& rich_model, int source_vert, vector<double>& correct_dis)
@@ -369,7 +373,200 @@ int main_old()
 }
 
 
-int main() {
+int main(int argc, char** argv) {
+	string input_file_name = "fertility_nf1k_anisotropic.obj";
+
+	CRichModel model(input_file_name);
+	model.Preprocess();
+	geodesic::Mesh mesh;
+	std::vector<double> points;
+	std::vector<unsigned> faces;
+	std::vector<int> realIndex;
+	int originalVertNum = 0;
+	clock_t start = clock();
+	bool success = geodesic::read_mesh_from_file(input_file_name.c_str(), points, faces, realIndex, originalVertNum);
+	if (!success)
+	{
+		fprintf(stderr, "something is wrong with the input file");
+		return 0;
+	}
+	mesh.initialize_mesh_data(points, faces);		//create internal
+
+	int sample_num = 200; 
+
+	vector<CPoint3D> result_list;
+	int source_index = atoi(argv[1]);
+	result_list.push_back(model.Vert(source_index));
+	geodesic::SurfacePoint source(&mesh.vertices()[source_index]);
+	vector<geodesic::SurfacePoint> sources{ source };
+	unsigned int seed = time(0);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> uniform_d(0, 1);//random noise len
+
+	for (int i = 1; i < sample_num; ++i) {
+		printf("i %d\n", i);
+		geodesic::GeodesicAlgorithmBase *algorithm;
+
+		algorithm = new geodesic::GeodesicAlgorithmExact(&mesh);
+
+		algorithm->propagate(sources);
+
+		int farthest_vert;
+		double farthest_dis = 0;
+		for (int j = 0; j < model.GetNumOfVerts(); ++j) {
+			double dis;
+			algorithm->best_source(geodesic::SurfacePoint(&mesh.vertices()[j]),dis);
+			if (dis > farthest_dis) {
+				farthest_dis = dis;
+				farthest_vert = j;
+			}
+		}
+
+		//neighbor faces
+		int farthest_neighbor_v;
+		int farthest_neighbor_e;
+		double farthest_neighbor_dis = 0;
+		for (auto n : model.Neigh(farthest_vert)) {
+			int v = (model.Edge(n.first).indexOfRightVert);
+			double dis;
+			algorithm->best_source(geodesic::SurfacePoint(&mesh.vertices()[v]), dis);
+			if (dis > farthest_neighbor_dis) {
+				farthest_neighbor_dis = dis;
+				farthest_neighbor_v = v;
+				farthest_neighbor_e = n.first;
+			}
+		}
+
+		int face_id;
+		{
+			int third_v0 = model.Edge(farthest_neighbor_e).indexOfOppositeVert;
+			int third_v1 = model.Edge(model.Edge(farthest_neighbor_e).indexOfReverseEdge).indexOfOppositeVert;
+			double third_dis0;
+			double third_dis1;
+			algorithm->best_source(geodesic::SurfacePoint(&mesh.vertices()[third_v0]), third_dis0);
+			algorithm->best_source(geodesic::SurfacePoint(&mesh.vertices()[third_v1]), third_dis1);
+			if (third_dis0 > third_dis1) {
+				face_id = model.Edge(farthest_neighbor_e).indexOfFrontFace;
+			}
+			else{
+				face_id = model.Edge(model.Edge(farthest_neighbor_e).indexOfReverseEdge).indexOfFrontFace;
+			}
+		}
+
+		//random times = 100
+		int random_times = 500;
+		double max_dis = 0;
+		geodesic::SurfacePoint max_surface_point;
+		CPoint3D p;
+		double max_a, max_b;
+		for (int j = 0; j < random_times; ++j) {
+
+			float alfa = (float)sqrt(uniform_d(gen));
+			float beta = (float)uniform_d(gen);
+			double a = 1.0 - alfa;
+			double b = alfa * (1.0 - beta);
+			if (a < 1e-6 || b < 1e-6) continue;
+			geodesic::SurfacePoint dest(&mesh.faces()[face_id], a, b);
+			double dis;
+			algorithm->best_source(dest,dis);
+			if (dis > max_dis) {
+				max_a = a;
+				max_b = b;
+				max_dis = dis;
+				max_surface_point = dest;
+				p = model.Vert(model.Face(face_id)[0]) * a + model.Vert(model.Face(face_id)[1]) * b + model.Vert(model.Face(face_id)[2]) * (1 - a - b);
+			}
+		}
+		printf("a %lf b %lf\n", max_a, max_b);
+		//source = max_surface_point;
+		sources.push_back(max_surface_point);
+		result_list.push_back(p);
+		//vector<geodesic::SurfacePoint> path;
+		//algorithm->trace_back(dest, path);
+
+
+
+		delete algorithm;
+	}
+
+	printBallToObj(result_list, "result_balls.obj", 0.01);
+	
+	return 0;
+
+}
+
+
+//sampling fast marching
+int main_sampling_fmm(int argc, char** argv) {
+	string input_file_name = "fertility_nf1k_anisotropic.obj";
+
+	CRichModel model(input_file_name);
+	model.Preprocess();
+	geodesic::Mesh mesh;
+	std::vector<double> points;
+	std::vector<unsigned> faces;
+	std::vector<int> realIndex;
+	int originalVertNum = 0;
+	clock_t start = clock();
+	bool success = geodesic::read_mesh_from_file(input_file_name.c_str(), points, faces, realIndex, originalVertNum);
+	if (!success)
+	{
+		fprintf(stderr, "something is wrong with the input file");
+		return 0;
+	}
+	mesh.initialize_mesh_data(points, faces);		//create internal
+
+	int sample_num = 200;
+
+	vector<CPoint3D> result_list;
+	int source_index = atoi(argv[1]);
+	result_list.push_back(model.Vert(source_index));
+	geodesic::SurfacePoint source(&mesh.vertices()[source_index]);
+	vector<geodesic::SurfacePoint> sources{ source };
+	unsigned int seed = time(0);
+
+	for (int i = 1; i < sample_num; ++i) {
+		printf("i %d\n", i);
+		geodesic::GeodesicAlgorithmBase *algorithm;
+
+		algorithm = new geodesic::GeodesicAlgorithmExact(&mesh);
+
+		algorithm->propagate(sources);
+
+		int farthest_vert;
+		double farthest_dis = 0;
+		for (int j = 0; j < model.GetNumOfVerts(); ++j) {
+			double dis;
+			algorithm->best_source(geodesic::SurfacePoint(&mesh.vertices()[j]), dis);
+			if (dis > farthest_dis) {
+				farthest_dis = dis;
+				farthest_vert = j;
+			}
+		}
+
+		geodesic::SurfacePoint max_surface_point(&mesh.vertices()[farthest_vert]);
+
+		//source = max_surface_point;
+		sources.push_back(max_surface_point);
+		result_list.push_back(model.Vert(farthest_vert));
+		//vector<geodesic::SurfacePoint> path;
+		//algorithm->trace_back(dest, path);
+
+
+
+		delete algorithm;
+	}
+
+	printBallToObj(result_list, "result_balls_s200_fmm.obj", 0.01);
+
+	return 0;
+
+}
+
+
+int main_armardillo() {
 	int source_vert = 89834;
 	string obj_file_name = "armadillo_nf346k.obj";
 
