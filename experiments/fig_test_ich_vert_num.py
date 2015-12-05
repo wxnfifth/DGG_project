@@ -32,11 +32,11 @@ def process_one_obj(obj_name, method, input_const, const_method, eps, error_file
     svg_log_filename=svg_binary_filename[:-7] + '_hy.log'
     #if not os.path.isfile(svg_log_filename):
     if method == 'fan':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s hy 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'lc':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s lll 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
     elif method == 'dggdij':
-        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s dggdij dbl 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
+        svg_lll_cmd_line = r'..\bin\dgg_lc.exe %s %s dggdij 2> %s 1>&2' %(obj_path,svg_binary_filename,svg_log_filename)
             
     print svg_lll_cmd_line
     os.system(svg_lll_cmd_line)
