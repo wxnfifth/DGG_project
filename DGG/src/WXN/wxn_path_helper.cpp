@@ -373,14 +373,29 @@ void CylinderPath::addGeodesicPath(geodesic::Mesh& mesh, geodesic::SurfacePoint&
 	for (int i = 0; i < path.size() - 1; ++i) {
 		addLine(CPoint3D(path[i].xyz()), CPoint3D(path[i+1].xyz()));
 	}
-
-
-
-
 	delete algorithm;
-
-
 }
+
+void CylinderPath::addGeodesicPath(geodesic::Mesh& mesh, geodesic::SurfacePoint& source, const vector<geodesic::SurfacePoint>& dests)
+{
+	vector<geodesic::SurfacePoint> sources{ source };
+	geodesic::GeodesicAlgorithmBase *algorithm;
+
+	algorithm = new geodesic::GeodesicAlgorithmExact(&mesh);
+
+	algorithm->propagate(sources);
+
+	for (auto dest : dests) {
+		vector<geodesic::SurfacePoint> path;
+		algorithm->trace_back(dest, path);
+
+		for (int i = 0; i < path.size() - 1; ++i) {
+			addLine(CPoint3D(path[i].xyz()), CPoint3D(path[i + 1].xyz()));
+		}
+	}
+	delete algorithm;
+}
+
 
 void CylinderPath::cntGeodesicPaths(CRichModel& model, int v0, const vector<int>& vts)
 {
@@ -469,7 +484,6 @@ void CylinderPath::addLines(const vector<CPoint3D>& pts)
 void CylinderPath::write_to_file(const string& filename) {
 	output_cylinder(filename, verts_, faces_);
 }
-
 
 void CylinderPath::write_path_points_to_file(const vector<CPoint3D>& pts,
 	const vector<IntersectionWithPath>& resultingPath,

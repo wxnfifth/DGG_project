@@ -35,6 +35,9 @@ public:
   void addGeodesicPaths(CRichModel& model, vector<int>& vts);
 
   void addGeodesicPath(geodesic::Mesh& mesh, geodesic::SurfacePoint& source, geodesic::SurfacePoint& dest);
+
+  void CylinderPath::addGeodesicPath(geodesic::Mesh& mesh, geodesic::SurfacePoint& source, const vector<geodesic::SurfacePoint>& dest);
+
   
   //void addGeodesicPath(CRichModel& model, geodesic::SurfacePoint& p0, geodesic::SurfacePoint& p1)
 	//{

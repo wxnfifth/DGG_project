@@ -37,7 +37,7 @@ int findDest(CRichModel& model ,string& input_obj_name ,int source, double eps_v
 
 
   geodesic::GeodesicAlgorithmBase *algorithm;
-
+   
   algorithm = new geodesic::GeodesicAlgorithmVGMMP(&mesh); 
 
   double step = 1.0;
@@ -193,7 +193,8 @@ void figure_6_bunny()
 
 int main()
 {
-  figure_6_fertility();
+	//figure_6_fertility();
+	//CylinderPath path;
 
 
 
