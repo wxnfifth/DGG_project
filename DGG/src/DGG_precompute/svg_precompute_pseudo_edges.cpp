@@ -14,7 +14,7 @@
 
 void initial_heads_and_parts(vector<BodyHeadOfSVG>& total_heads,
 	vector<vector<BodyPartOfSVGWithAngle>>& total_parts,
-	const CRichModel& model, SparseGraph<float>* s_graph)
+	CRichModel& model, SparseGraph<float>* s_graph)
 {
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
 		auto& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的geodesic distance 
@@ -25,6 +25,15 @@ void initial_heads_and_parts(vector<BodyHeadOfSVG>& total_heads,
 		}
 		total_heads[i].source_index = i;
 		total_heads[i].neighbor_num = geo_dises.size();
+
+
+		if (i == 1700) {
+			CylinderPath path(0.0005);
+			path.addGeodesicPaths(model, i, s_graph->graphNeighbor(i));
+			path.write_to_file("paths_without_pseudo_edges.obj");
+			printBallToObj(vector < CPoint3D > {model.Vert(i)}, "paths_source.obj", 0.003);
+		}
+
 	}
 }
 
@@ -375,11 +384,20 @@ void write_to_output_file(CRichModel& model, const vector<BodyHeadOfSVG>& total_
 
 void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_vg, YXPathTracer& path_tracer, geodesic::Mesh& mesh, double theta, vector<BodyHeadOfSVG>& total_heads, vector<vector<BodyPartOfSVGWithAngle>>& total_parts, const string& svg_file_name)
 {
-	double min_angle = 2 * asin(sqrt(eps_vg));
+	double min_angle = asin(sqrt(eps_vg)) * 2;
 	bool flag_first_time_dump = false;
 	int flag_dump_cnt = 0;
 	vector<PointOnFace> added_points_list;
+
+	vector<geodesic::SurfacePoint> surface_pts;
+	bool flag_first = true;
+	
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		if (false) {
+			if (i == -1 && flag_first) {
+				i = 1700;
+			}
+		}
 		printf("i%d ", i);
 		const vector<float>& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的//geodesic distance 
 		const std::vector<float>&  angles = s_graph->graphNeighborAngle(i); //i点到各个邻居
@@ -449,16 +467,22 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 					if (divided_angles[k] > angle_sum) {
 						divided_angles[k] -= angle_sum;
 					}
+					if (i == 1700) {
+						printf("angles[%d]=%lf angles[%d]=%lf, k %d angles %lf\n", j, angles[j], j + 1, angles[j + 1], k, divided_angles[k]);
+					}
 
 					CPoint3D p;
 					int face_index;
 					find_pseudo_point_using_path_tracer(model, i, first_edge_id, max_dis,
-						angles[j], path_tracer, p, face_index);
+						divided_angles[k], path_tracer, p, face_index);
 					int current_source_index = model.GetNumOfVerts() + added_points_list.size();
 					added_points_list.push_back(PointOnFace(face_index, p));
 					total_heads[i].neighbor_num++;
 					total_parts[i].push_back(BodyPartOfSVGWithAngle(current_source_index, max_dis, divided_angles[k], 0, 0));
 
+					if (i == 1700) {
+						surface_pts.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index], p));
+					}
 					BodyHeadOfSVG body_head;
 					std::vector<BodyPartOfSVGWithAngle> body_parts_with_angle;
 					vector<double> dest_angles;
@@ -475,7 +499,23 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 				}
 			}
 		}
+
+		if (false) {
+			if (i == 1700) {
+				//surface_pts.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index], p));
+				CylinderPath path(0.0005);
+				path.addGeodesicPath(mesh, geodesic::SurfacePoint(&mesh.vertices()[i]), surface_pts);
+				path.write_to_file("path_pseudo_edges.obj");
+			}
+
+			if (i == 1700 && flag_first) {
+				i = -1;
+				flag_first = false;
+			}
+		}
 	}
+
+
 
 	printf("\narrange angeles\n");
 	for (int i = 0; i < model.GetNumOfVerts(); ++i)
