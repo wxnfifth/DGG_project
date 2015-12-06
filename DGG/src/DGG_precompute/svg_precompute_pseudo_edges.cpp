@@ -392,8 +392,8 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 	vector<geodesic::SurfacePoint> surface_pts;
 	bool flag_first = true;
 	
-	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
-		if (false) {
+	for (int i = -1; i < model.GetNumOfVerts(); ++i) {
+		if (true) {
 			if (i == -1 && flag_first) {
 				i = 1700;
 			}
@@ -500,9 +500,10 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 			}
 		}
 
-		if (false) {
+		if (true) {
 			if (i == 1700) {
 				//surface_pts.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index], p));
+				surface_pts.push_back(geodesic::SurfacePoint(&mesh.vertices()[1294]));
 				CylinderPath path(0.0005);
 				path.addGeodesicPath(mesh, geodesic::SurfacePoint(&mesh.vertices()[i]), surface_pts);
 				path.write_to_file("path_pseudo_edges.obj");

@@ -62,7 +62,7 @@ def main():
         elif const_method == 'choose':
             constant = input_const
         #constant = 5
-        precompute_log_filename = os.path.join(dir_name,'dggich_precompute_%s_%f_%d.log' % (model_name,eps,constant))
+        precompute_log_filename = os.path.join(dir_name,'dggich_precompute_%s_%.10f_%d.log' % (model_name,eps,constant))
         svg_precompute_cmd_line = r'..\bin\dgg_precompute.exe %s %f im %d 4 2> %s 1>&2' % (obj_path,eps,constant,precompute_log_filename)
         svg_binary_filename = os.path.join(dir_name,'%s_DGGICH%f_c%d_pruning.binary' % (model_name,eps,constant))
         if not os.path.isfile(svg_binary_filename):

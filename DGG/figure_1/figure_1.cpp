@@ -373,7 +373,7 @@ int main_old()
 }
 
 
-int main_sampling_dgg(int argc, char** argv) {
+int main(int argc, char** argv) {
 	//string input_file_name = "fertility_nf1k_anisotropic.obj";
 	if (argc < 4) {
 		printf("error! usage: xx.exe xx.obj 0[source index] 100[num of sample]\n");
@@ -507,15 +507,83 @@ int main_sampling_dgg(int argc, char** argv) {
 		delete algorithm;
 	}
 
-	printBallToObj(result_list, "result_balls.obj", 0.005);
+	printBallToObj(result_list, "result_balls_dgg.obj", 0.005);
 	
+
+
+	{
+		YXMesh3D yx_mesh;
+		yx_mesh.load("buddha_nf5k_anisotropic.obj");
+		yx_mesh.subdivide();
+		yx_mesh.subdivide();
+		yx_mesh.subdivide();
+		yx_mesh.subdivide();
+
+		string submodel_filename = "subsubsubsubbuddha_nf5k_anisotropic.obj";
+
+		yx_mesh.print_to_obj(submodel_filename.c_str());
+
+		CRichModel submodel(submodel_filename);
+		submodel.Preprocess();
+		geodesic::Mesh submesh;
+		std::vector<double> points;
+		std::vector<unsigned> faces;
+		std::vector<int> realIndex;
+		int originalVertNum = 0;
+		clock_t start = clock();
+		bool success = geodesic::read_mesh_from_file(submodel_filename.c_str(), points, faces, realIndex, originalVertNum);
+		if (!success)
+		{
+			fprintf(stderr, "something is wrong with the input file");
+			return 0;
+		}
+		submesh.initialize_mesh_data(points, faces);		//create internal
+		geodesic::GeodesicAlgorithmBase *algorithm;
+
+		algorithm = new geodesic::GeodesicAlgorithmExact(&submesh);
+		vector<geodesic::SurfacePoint> subsources;
+		int cnt = 0;
+		for (auto s : sources) {
+			printf("cnt %d\n", cnt++);
+			double min_dis = 1e10;
+			int min_pos;
+			for (int i = 0; i < submodel.GetNumOfVerts(); ++i) {
+				double dis = (submodel.Vert(i) - CPoint3D(s.x(), s.y(), s.z())).Len();;
+				if (min_dis > dis) {
+					min_dis = dis;
+					min_pos = i;
+				}
+			}
+			subsources.push_back(&submesh.vertices()[min_pos]);
+			//subsources.push_back(&submesh.vertices()[s.base_element()->id()]);
+		}
+		algorithm->propagate(subsources);
+		vector<double> dises;
+		for (int i = 0; i < submodel.GetNumOfVerts(); ++i) {
+			double d;
+			algorithm->best_source(geodesic::SurfacePoint(&submesh.vertices()[i]), d);
+			dises.push_back(d);
+		}
+		double max_dis = *max_element(dises.begin(), dises.end());
+		max_dis = 0.1;
+		printf("max_dis is %lf\n", max_dis);
+		vector<pair<double, double>> textures;
+		for (double d : dises) {
+			textures.push_back(make_pair(d / max_dis, d / max_dis));
+		}
+		submodel.FastSaveObjFile("buddha_dgg_texture.obj", textures);
+
+
+	}
+
+
 	return 0;
 
 }
 
 
 //sampling fast marching
-int main(int argc, char** argv) {
+int main_sampling_fmm(int argc, char** argv) {
 	//string input_file_name = "fertility_nf1k_anisotropic.obj";
 	if (argc < 4) {
 		printf("error! usage: xx.exe xx.obj 0[source index] 100[num of sample]\n");
@@ -580,7 +648,61 @@ int main(int argc, char** argv) {
 		delete algorithm;
 	}
 
-	printBallToObj(result_list, "result_balls_s200_fmm.obj", 0.005);
+	printBallToObj(result_list, "result_balls_s1000_fmm.obj", 0.005);
+
+	{
+		YXMesh3D yx_mesh;
+		yx_mesh.load("buddha_nf5k_anisotropic.obj");
+		yx_mesh.subdivide();
+		yx_mesh.subdivide();
+		yx_mesh.subdivide();
+
+
+		string submodel_filename = "subsubsubbuddha_nf5k_anisotropic.obj";
+
+		yx_mesh.print_to_obj(submodel_filename.c_str());
+
+		CRichModel submodel(submodel_filename);
+		submodel.Preprocess();
+		geodesic::Mesh submesh;
+		std::vector<double> points;
+		std::vector<unsigned> faces;
+		std::vector<int> realIndex;
+		int originalVertNum = 0;
+		clock_t start = clock();
+		bool success = geodesic::read_mesh_from_file(submodel_filename.c_str(), points, faces, realIndex, originalVertNum);
+		if (!success)
+		{
+			fprintf(stderr, "something is wrong with the input file");
+			return 0;
+		}
+		submesh.initialize_mesh_data(points, faces);		//create internal
+		geodesic::GeodesicAlgorithmBase *algorithm;
+
+		algorithm = new geodesic::GeodesicAlgorithmExact(&submesh);
+		vector<geodesic::SurfacePoint> subsources;
+		for (auto s : sources) {
+			subsources.push_back(&submesh.vertices()[s.base_element()->id()]);
+		}
+		algorithm->propagate(subsources);
+		vector<double> dises;
+		for (int i = 0; i < submodel.GetNumOfVerts(); ++i) {
+			double d;
+			algorithm->best_source(geodesic::SurfacePoint(&submesh.vertices()[i]), d);
+			dises.push_back(d);
+		}
+		double max_dis = *max_element(dises.begin(), dises.end());
+		max_dis = 0.1;
+		printf("max_dis is %lf\n", max_dis);
+		vector<pair<double, double>> textures;
+		for (double d : dises) {
+			textures.push_back(make_pair(d / max_dis, d / max_dis));
+		}
+		submodel.FastSaveObjFile("buddha_fmm_texture.obj", textures); 
+
+
+	}
+
 
 	return 0;
 
