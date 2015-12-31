@@ -19,14 +19,14 @@
     <Filter Include="DGG_precompute">
       <UniqueIdentifier>{d10a4858-a62e-4d58-bcaf-e7bd26197568}</UniqueIdentifier>
     </Filter>
-    <Filter Include="JIAJUN">
-      <UniqueIdentifier>{be665692-10aa-439a-a293-0788e251c99a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MMP">
       <UniqueIdentifier>{883d1dde-b821-4d98-bf19-2bdc92f175bc}</UniqueIdentifier>
     </Filter>
     <Filter Include="WXN">
       <UniqueIdentifier>{f9f2c73c-60a4-472c-88ab-7b8dc84c53d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\JIAJUN">
+      <UniqueIdentifier>{be665692-10aa-439a-a293-0788e251c99a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,7 +58,7 @@
       <Filter>DGG_precompute</Filter>
     </ClCompile>
     <ClCompile Include="..\src\JIAJUN\dgg_pruning.cpp">
-      <Filter>JIAJUN</Filter>
+      <Filter>Resource Files\JIAJUN</Filter>
     </ClCompile>
     <ClCompile Include="figure5_main.cpp">
       <Filter>Source Files</Filter>
@@ -114,7 +114,7 @@
       <Filter>DGG_precompute</Filter>
     </ClInclude>
     <ClInclude Include="..\src\JIAJUN\dgg_pruning.h">
-      <Filter>JIAJUN</Filter>
+      <Filter>Resource Files\JIAJUN</Filter>
     </ClInclude>
     <ClInclude Include="..\src\MMP\geodesic_algorithm_base.h">
       <Filter>MMP</Filter>
