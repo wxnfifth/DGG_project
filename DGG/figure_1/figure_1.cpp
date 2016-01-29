@@ -334,7 +334,67 @@ int main_old()
 }
 
 
-int main(int argc, char** argv) {
+int main() {
+	printf("???\n");
+	string input_file_name = "lucy_nf5k.obj";
+	CRichModel model(input_file_name);
+	model.Preprocess();
+	CylinderPath path(0.003);
+	geodesic::Mesh mesh;
+	std::vector<double> points;
+	std::vector<unsigned> faces;
+	std::vector<int> realIndex;
+	int originalVertNum = 0;
+	clock_t start = clock();
+	bool success = geodesic::read_mesh_from_file(input_file_name.c_str(), points, faces, realIndex, originalVertNum);
+	if (!success)
+	{
+		fprintf(stderr, "something is wrong with the input file");
+		return 0;
+	}
+	printf("begin\n");
+	mesh.initialize_mesh_data(points, faces);		//create internal
+	//3782,4463
+	vector<geodesic::SurfacePoint> source_surface_points;
+	auto p0 = geodesic::SurfacePoint(&mesh.faces()[3782], 0.3, 0.3);
+	source_surface_points.push_back(p0);
+	auto p1 = geodesic::SurfacePoint(&mesh.faces()[4464], 0.3, 0.3);
+	source_surface_points.push_back(p1);
+	path.addGeodesicPath(mesh, p0, p1);
+//	vector<geodesic::SurfacePoint> source_surface_points;907 1817
+	auto p3 = geodesic::SurfacePoint(&mesh.faces()[875], 0.3, 0.3);
+	source_surface_points.push_back(p3);
+	auto p4 = geodesic::SurfacePoint(&mesh.faces()[413], 0.3, 0.3);  
+	source_surface_points.push_back(p4);
+	path.addGeodesicPath(mesh, p3, p4);
+	auto p5 = geodesic::SurfacePoint(&mesh.faces()[907], 0.3, 0.3);
+	source_surface_points.push_back(p5);
+	auto p6 = geodesic::SurfacePoint(&mesh.faces()[1817], 0.3, 0.3);
+	source_surface_points.push_back(p6);
+	path.addGeodesicPath(mesh, p5, p6);
+
+
+	//3693,398
+	p5 = geodesic::SurfacePoint(&mesh.faces()[3693], 0.3, 0.3);
+	source_surface_points.push_back(p5);
+	p6 = geodesic::SurfacePoint(&mesh.faces()[398], 0.3, 0.3);
+	source_surface_points.push_back(p6);
+	path.addGeodesicPath(mesh, p5, p6);
+
+	vector<CPoint3D> sources;
+	for (auto p : source_surface_points) {
+		auto f = model.Face(p.base_element()->id());
+		sources.push_back(model.Vert(f[0])*0.3 + model.Vert(f[1])*0.3 + model.Vert(f[2])*0.4);
+	}
+	path.write_to_file("lucy_nf5k_path.obj");
+	printBallToObj(sources, "sources.obj", 0.01);
+
+
+
+
+}
+
+int main_figure_1(int argc, char** argv) {
 	if (argc < 4) {
 		printf("error! usage: xx.exe xx.obj 0[source index] 100[num of sample]\n");
 		return 1;

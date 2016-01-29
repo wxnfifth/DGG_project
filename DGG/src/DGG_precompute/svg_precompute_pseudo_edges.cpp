@@ -392,13 +392,7 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 	vector<geodesic::SurfacePoint> surface_pts;
 	bool flag_first = true;
 	
-	for (int i = -1; i < model.GetNumOfVerts(); ++i) {
-		if (true) {
-			if (i == -1 && flag_first) {
-				i = 1700;
-			}
-		}
-		printf("i%d ", i);
+	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
 		const vector<float>& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的//geodesic distance 
 		const std::vector<float>&  angles = s_graph->graphNeighborAngle(i); //i点到各个邻居
 		int neighor_size = angles.size();
@@ -467,10 +461,6 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 					if (divided_angles[k] > angle_sum) {
 						divided_angles[k] -= angle_sum;
 					}
-					if (i == 1700) {
-						printf("angles[%d]=%lf angles[%d]=%lf, k %d angles %lf\n", j, angles[j], j + 1, angles[j + 1], k, divided_angles[k]);
-					}
-
 					CPoint3D p;
 					int face_index;
 					find_pseudo_point_using_path_tracer(model, i, first_edge_id, max_dis,
@@ -499,21 +489,6 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 				}
 			}
 		}
-
-		if (true) {
-			if (i == 1700) {
-				//surface_pts.push_back(geodesic::SurfacePoint(&mesh.faces()[face_index], p));
-				surface_pts.push_back(geodesic::SurfacePoint(&mesh.vertices()[1294]));
-				CylinderPath path(0.0005);
-				path.addGeodesicPath(mesh, geodesic::SurfacePoint(&mesh.vertices()[i]), surface_pts);
-				path.write_to_file("path_pseudo_edges.obj");
-			}
-
-			if (i == 1700 && flag_first) {
-				i = -1;
-				flag_first = false;
-			}
-		}
 	}
 
 
@@ -521,7 +496,6 @@ void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_
 	printf("\narrange angeles\n");
 	for (int i = 0; i < model.GetNumOfVerts(); ++i)
 	{
-		printf("i %d ", i);
 		auto& current_head = total_heads[i];
 		auto& current_parts = total_parts[i];
 		auto& one_ring_sum_angle = model.NeighAngleSum(i);
