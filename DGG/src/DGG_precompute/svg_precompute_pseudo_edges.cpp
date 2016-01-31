@@ -26,8 +26,8 @@ void initial_heads_and_parts(vector<BodyHeadOfSVG>& total_heads,
 		total_heads[i].source_index = i;
 		total_heads[i].neighbor_num = geo_dises.size();
 
-
-		if (i == 1700) {
+		//if (i == 1700) {
+		if (false) {
 			CylinderPath path(0.0005);
 			path.addGeodesicPaths(model, i, s_graph->graphNeighbor(i));
 			path.write_to_file("paths_without_pseudo_edges.obj");
@@ -384,15 +384,17 @@ void write_to_output_file(CRichModel& model, const vector<BodyHeadOfSVG>& total_
 
 void add_points_list(CRichModel& model, SparseGraph<float>* s_graph, double eps_vg, YXPathTracer& path_tracer, geodesic::Mesh& mesh, double theta, vector<BodyHeadOfSVG>& total_heads, vector<vector<BodyPartOfSVGWithAngle>>& total_parts, const string& svg_file_name)
 {
-	double min_angle = asin(sqrt(eps_vg)) * 2;
+	double min_angle = asin(sqrt(eps_vg)) * 3;
 	bool flag_first_time_dump = false;
 	int flag_dump_cnt = 0;
 	vector<PointOnFace> added_points_list;
 
 	vector<geodesic::SurfacePoint> surface_pts;
 	bool flag_first = true;
-	
+	ElapsedTime time_once;
 	for (int i = 0; i < model.GetNumOfVerts(); ++i) {
+		time_once.printEstimateTime(5, (double)(source - head.begin_vertex_index) / (head.end_vertex_index - head.begin_vertex_index));
+
 		const vector<float>& geo_dises = s_graph->graphNeighborDis(i); //i点的到各个邻居的//geodesic distance 
 		const std::vector<float>&  angles = s_graph->graphNeighborAngle(i); //i点到各个邻居
 		int neighor_size = angles.size();

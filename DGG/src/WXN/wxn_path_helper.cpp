@@ -468,7 +468,9 @@ void CylinderPath::addGeodesicPaths(CRichModel& model, vector<int>& vts)
 
 void CylinderPath::addLine(const CPoint3D&p0, const CPoint3D& p1)
 {
-	generateCylinder(p0, p1, verts_, faces_, radius_);
+	auto p2 = p0 + (p1 - p0) * 1.01;
+	auto p3 = p1 + (p0 - p1) * 1.01;
+	generateCylinder(p2, p3, verts_, faces_, radius_);
 }
 void CylinderPath::addLine(const CPoint3D&p0, const CPoint3D& p1, const double len)
 {

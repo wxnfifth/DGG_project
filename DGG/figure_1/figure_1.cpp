@@ -339,7 +339,7 @@ int main() {
 	string input_file_name = "lucy_nf5k.obj";
 	CRichModel model(input_file_name);
 	model.Preprocess();
-	CylinderPath path(0.003);
+	CylinderPath path(0.005);
 	geodesic::Mesh mesh;
 	std::vector<double> points;
 	std::vector<unsigned> faces;
@@ -356,30 +356,28 @@ int main() {
 	mesh.initialize_mesh_data(points, faces);		//create internal
 	//3782,4463
 	vector<geodesic::SurfacePoint> source_surface_points;
-	auto p0 = geodesic::SurfacePoint(&mesh.faces()[3782], 0.3, 0.3);
-	source_surface_points.push_back(p0);
-	auto p1 = geodesic::SurfacePoint(&mesh.faces()[4464], 0.3, 0.3);
-	source_surface_points.push_back(p1);
-	path.addGeodesicPath(mesh, p0, p1);
+
+	//auto p0 = geodesic::SurfacePoint(&mesh.faces()[3782], 0.3, 0.3);
+	//source_surface_points.push_back(p0);
+	//auto p1 = geodesic::SurfacePoint(&mesh.faces()[4464], 0.3, 0.3);
+	//source_surface_points.push_back(p1);
+	//path.addGeodesicPath(mesh, p0, p1);
 //	vector<geodesic::SurfacePoint> source_surface_points;907 1817
-	auto p3 = geodesic::SurfacePoint(&mesh.faces()[875], 0.3, 0.3);
-	source_surface_points.push_back(p3);
-	auto p4 = geodesic::SurfacePoint(&mesh.faces()[413], 0.3, 0.3);  
-	source_surface_points.push_back(p4);
-	path.addGeodesicPath(mesh, p3, p4);
-	auto p5 = geodesic::SurfacePoint(&mesh.faces()[907], 0.3, 0.3);
-	source_surface_points.push_back(p5);
-	auto p6 = geodesic::SurfacePoint(&mesh.faces()[1817], 0.3, 0.3);
-	source_surface_points.push_back(p6);
-	path.addGeodesicPath(mesh, p5, p6);
+	//3757,1487
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[3767], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[1487], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[875], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[413], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[907], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[1817], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[3693], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[398], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[4278], 0.3, 0.3));
+	source_surface_points.push_back(geodesic::SurfacePoint(&mesh.faces()[3231], 0.3, 0.3));
 
-
-	//3693,398
-	p5 = geodesic::SurfacePoint(&mesh.faces()[3693], 0.3, 0.3);
-	source_surface_points.push_back(p5);
-	p6 = geodesic::SurfacePoint(&mesh.faces()[398], 0.3, 0.3);
-	source_surface_points.push_back(p6);
-	path.addGeodesicPath(mesh, p5, p6);
+	for (int i = 0; i < source_surface_points.size(); i+=2) {
+		path.addGeodesicPath(mesh, source_surface_points[i], source_surface_points[i + 1]);
+	}
 
 	vector<CPoint3D> sources;
 	for (auto p : source_surface_points) {
